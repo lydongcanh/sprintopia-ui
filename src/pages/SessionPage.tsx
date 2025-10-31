@@ -1,7 +1,6 @@
 import { useParams, Link } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
 import { useRealtimeChannel, type RealtimeMessage } from "@/hooks/useRealtimeChannel"
-import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
 import { api, APIError } from "@/services/api"
 import type { GroomingSession } from "@/types/api"
@@ -11,7 +10,6 @@ export default function SessionPage() {
   const [session, setSession] = useState<GroomingSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const { isAnonymous } = useAuth()
 
   // Store channel name separately to prevent unnecessary re-connections
   const [channelName, setChannelName] = useState<string | null>(null)
