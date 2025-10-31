@@ -1,6 +1,7 @@
 import type { CreateGroomingSessionRequest, CreateGroomingSessionResponse, HTTPValidationError, GroomingSession, CreateUserRequest, CreateUserResponse } from "@/types/api";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/v1";
+const SERVER_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api/v1', '') || "http://127.0.0.1:8000";
 
 export class APIError extends Error {
   status: number;
@@ -39,6 +40,31 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
+  async healthCheck(): Promise<{ status: 'online' | 'offline'; response_time?: number }> {
+    const startTime = Date.now();
+    try {
+      const response = await fetch(`${SERVER_BASE_URL}/health`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // Add a timeout to prevent hanging
+        signal: AbortSignal.timeout(5000),
+      });
+
+      const responseTime = Date.now() - startTime;
+      
+      if (response.ok) {
+        return { status: 'online', response_time: responseTime };
+      } else {
+        return { status: 'offline' };
+      }
+    } catch (error) {
+      console.warn('Health check failed:', error);
+      return { status: 'offline' };
+    }
+  },
+
   async createUser(
     request: CreateUserRequest
   ): Promise<CreateUserResponse> {

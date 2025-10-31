@@ -3,6 +3,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
+import { ServerStatus } from '@/components/ServerStatus'
 import { api, APIError } from "@/services/api"
 import { toast } from 'sonner'
 import type { GroomingSession } from "@/types/api"
@@ -141,9 +142,6 @@ export default function HomePage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-primary">Sprintopia</h1>
-              <p className="text-muted-foreground mt-2">
-                A joyful home for agile discussions and estimation
-              </p>
             </div>
             <UserMenu />
           </div>
@@ -287,6 +285,9 @@ export default function HomePage() {
           )}
         </div>
       </main>
+      
+      {/* Server Status Indicator */}
+      <ServerStatus />
     </div>
   )
 }
