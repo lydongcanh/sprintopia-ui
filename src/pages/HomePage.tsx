@@ -1,6 +1,8 @@
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { useAuth } from '@/hooks/useAuth'
+import { UserMenu } from '@/components/auth/UserMenu'
 import { api, APIError } from "@/services/api"
 
 export default function HomePage() {
@@ -8,6 +10,17 @@ export default function HomePage() {
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const { user, isAnonymous, isLoading } = useAuth()
+
+  const getStatusMessage = () => {
+    if (user) {
+      return `Welcome back, ${user.user_metadata?.full_name || user.email}! Your sessions will be saved.`
+    }
+    if (isAnonymous) {
+      return 'Sessions created anonymously are temporary.'
+    }
+    return 'Planning poker sessions with real-time collaboration'
+  }
 
   const handleCreateSession = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,7 +30,17 @@ export default function HomePage() {
     setError(null)
 
     try {
-      const session = await api.createGroomingSession({ name: sessionName.trim() })
+      const session = await api.createGroomingSession({ 
+        name: sessionName.trim(),
+        // Include user info if authenticated
+        ...(user && { 
+          created_by: user.id,
+          user_metadata: {
+            email: user.email,
+            full_name: user.user_metadata?.full_name
+          }
+        })
+      })
       
       if (session) {
         // Navigate to the session page
@@ -43,14 +66,30 @@ export default function HomePage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="border-b">
         <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-primary">Sprintopia</h1>
-          <p className="text-muted-foreground mt-2">
-            A joyful home for agile discussions and estimation
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-primary">Sprintopia</h1>
+              <p className="text-muted-foreground mt-2">
+                A joyful home for agile discussions and estimation
+              </p>
+            </div>
+            <UserMenu />
+          </div>
         </div>
       </header>
       <main className="container mx-auto px-4 py-8">
@@ -60,6 +99,14 @@ export default function HomePage() {
             <p className="text-muted-foreground">
               Start a new planning poker session for your team
             </p>
+            
+            {isAnonymous && (
+              <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-4">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  💡 You're using Sprintopia anonymously. Sessions won't be saved to your account.
+                </p>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleCreateSession} className="space-y-4">
@@ -96,7 +143,7 @@ export default function HomePage() {
 
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
-              Planning poker sessions with real-time collaboration
+              {getStatusMessage()}
             </p>
           </div>
         </div>

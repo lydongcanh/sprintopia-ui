@@ -6,14 +6,15 @@ if (!env.isSupabaseConfigured && env.isDevelopment) {
 }
 
 export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
+  },
   realtime: {
     params: {
       eventsPerSecond: 10,
     },
-  },
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
   },
 })
 

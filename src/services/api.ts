@@ -1,6 +1,6 @@
-import type { CreateGroomingSessionRequest, CreateGroomingSessionResponse, HTTPValidationError, GroomingSession } from "@/types/api";
+import type { CreateGroomingSessionRequest, CreateGroomingSessionResponse, HTTPValidationError, GroomingSession, CreateUserRequest, CreateUserResponse } from "@/types/api";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = "http://127.0.0.1:8000/api/v1";
 
 export class APIError extends Error {
   status: number;
@@ -39,10 +39,24 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const api = {
+  async createUser(
+    request: CreateUserRequest
+  ): Promise<CreateUserResponse> {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+
+    return handleResponse<CreateUserResponse>(response);
+  },
+
   async createGroomingSession(
     request: CreateGroomingSessionRequest
   ): Promise<CreateGroomingSessionResponse> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/grooming-sessions`, {
+    const response = await fetch(`${API_BASE_URL}/grooming-sessions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -54,7 +68,7 @@ export const api = {
   },
 
   async getGroomingSession(sessionId: string): Promise<GroomingSession | null> {
-    const response = await fetch(`${API_BASE_URL}/api/v1/grooming-sessions/${sessionId}`, {
+    const response = await fetch(`${API_BASE_URL}/grooming-sessions/${sessionId}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -15,6 +15,22 @@ export interface GroomingSession {
   real_time_channel_name: string;
 }
 
+export interface CreateUserRequest {
+  email: string;
+  full_name: string;
+  external_auth_id: string;
+}
+
+export interface User {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  status: EntityStatus;
+  email: string;
+  full_name: string;
+  external_auth_id: string;
+}
+
 export interface HTTPValidationError {
   detail?: ValidationError[];
 }
@@ -27,3 +43,4 @@ export interface ValidationError {
 
 // API Response types
 export type CreateGroomingSessionResponse = GroomingSession | null;
+export type CreateUserResponse = User;

@@ -1,6 +1,8 @@
 import { useParams, Link } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
 import { useRealtimeChannel, type RealtimeMessage } from "@/hooks/useRealtimeChannel"
+import { useAuth } from '@/hooks/useAuth'
+import { UserMenu } from '@/components/auth/UserMenu'
 import { api, APIError } from "@/services/api"
 import type { GroomingSession } from "@/types/api"
 
@@ -9,6 +11,7 @@ export default function SessionPage() {
   const [session, setSession] = useState<GroomingSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { isAnonymous } = useAuth()
 
   // Store channel name separately to prevent unnecessary re-connections
   const [channelName, setChannelName] = useState<string | null>(null)
@@ -142,12 +145,20 @@ export default function SessionPage() {
               <p className="text-xs text-muted-foreground">
                 Channel: {session.real_time_channel_name}
               </p>
+              {isAnonymous && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                  ⚠️ Anonymous session - changes won't be saved to your account
+                </p>
+              )}
             </div>
-            <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
-              <span className="text-sm text-muted-foreground capitalize">
-                {connectionStatus}
-              </span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
+                <span className="text-sm text-muted-foreground capitalize">
+                  {connectionStatus}
+                </span>
+              </div>
+              <UserMenu />
             </div>
           </div>
         </div>
