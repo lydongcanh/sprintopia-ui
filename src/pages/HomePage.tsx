@@ -4,12 +4,12 @@ import { useNavigate } from "react-router-dom"
 import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
 import { api, APIError } from "@/services/api"
+import { toast } from 'sonner'
 import type { GroomingSession } from "@/types/api"
 
 export default function HomePage() {
   const [sessionName, setSessionName] = useState("")
   const [isCreating, setIsCreating] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [existingSessions, setExistingSessions] = useState<GroomingSession[]>([])
   const [isLoadingSessions, setIsLoadingSessions] = useState(true)
   const [activeTab, setActiveTab] = useState<'join' | 'create'>('join')
@@ -59,7 +59,6 @@ export default function HomePage() {
     if (!sessionName.trim()) return
 
     setIsCreating(true)
-    setError(null)
 
     try {
       const session = await api.createGroomingSession({ 
@@ -83,10 +82,19 @@ export default function HomePage() {
           console.error('Failed to refresh sessions:', error)
         }
         
+        // Show success toast
+        toast.success("Session created! 🎉", {
+          description: `"${sessionName.trim()}" is ready for your team.`,
+          duration: 4000,
+        })
+        
         // Navigate to the session page
         navigate(`/session/${session.id}`)
       } else {
-        setError("Failed to create session")
+        toast.error("Failed to create session", {
+          description: "Please try again or contact support if the issue persists.",
+          duration: 6000,
+        })
       }
     } catch (err) {
       if (err instanceof APIError) {
@@ -94,12 +102,21 @@ export default function HomePage() {
           const validationMessages = err.validationErrors.detail
             .map(detail => detail.msg)
             .join(", ")
-          setError(`Validation error: ${validationMessages}`)
+          toast.error("Validation Error", {
+            description: validationMessages,
+            duration: 6000,
+          })
         } else {
-          setError(`API error: ${err.message}`)
+          toast.error("API Error", {
+            description: err.message,
+            duration: 6000,
+          })
         }
       } else {
-        setError("An unexpected error occurred")
+        toast.error("Unexpected Error", {
+          description: "An unexpected error occurred. Please try again.",
+          duration: 6000,
+        })
       }
     } finally {
       setIsCreating(false)
@@ -257,12 +274,6 @@ export default function HomePage() {
                     required
                   />
                 </div>
-
-                {error && (
-                  <div className="p-4 text-sm text-destructive-foreground bg-destructive/10 border border-destructive/20 rounded-lg">
-                    {error}
-                  </div>
-                )}
 
                 <Button 
                   type="submit" 

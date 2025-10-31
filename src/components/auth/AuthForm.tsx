@@ -14,14 +14,12 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   
   const { signIn, signUp } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError(null)
 
     try {
       if (mode === 'signup') {
@@ -29,7 +27,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         if (error) throw error
         
         // Show success toast and navigate to dashboard
-        toast.success("Account created successfully!", {
+        toast.success("Account created successfully! 📧", {
           description: `We've sent a confirmation link to ${email}. Please check your email and click the link to verify your account before signing in.`,
           duration: 8000,
         })
@@ -50,9 +48,8 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An error occurred'
-      setError(errorMessage)
       
-      // Also show error as toast
+      // Show error as toast only
       toast.error("Authentication failed", {
         description: errorMessage,
         duration: 6000,
@@ -129,12 +126,6 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
             minLength={6}
           />
         </div>
-
-        {error && (
-          <div className="text-destructive text-sm bg-destructive/10 p-3 rounded-md">
-            {error}
-          </div>
-        )}
 
         <Button type="submit" className="w-full" disabled={isLoading}>
           {getButtonText()}
