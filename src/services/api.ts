@@ -19,6 +19,19 @@ export class APIError extends Error {
   }
 }
 
+// Helper function to build headers with optional authentication
+function buildHeaders(accessToken?: string): HeadersInit {
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+  };
+
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+
+  return headers;
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const contentType = response.headers.get("content-type");
@@ -66,13 +79,12 @@ export const api = {
   },
 
   async createUser(
-    request: CreateUserRequest
+    request: CreateUserRequest,
+    accessToken?: string
   ): Promise<CreateUserResponse> {
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildHeaders(accessToken),
       body: JSON.stringify(request),
     });
 
@@ -80,25 +92,22 @@ export const api = {
   },
 
   async createGroomingSession(
-    request: CreateGroomingSessionRequest
+    request: CreateGroomingSessionRequest,
+    accessToken?: string
   ): Promise<CreateGroomingSessionResponse> {
     const response = await fetch(`${API_BASE_URL}/grooming-sessions`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildHeaders(accessToken),
       body: JSON.stringify(request),
     });
 
     return handleResponse<CreateGroomingSessionResponse>(response);
   },
 
-  async getGroomingSession(sessionId: string): Promise<GroomingSession | null> {
+  async getGroomingSession(sessionId: string, accessToken?: string): Promise<GroomingSession | null> {
     const response = await fetch(`${API_BASE_URL}/grooming-sessions/${sessionId}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildHeaders(accessToken),
     });
 
     if (response.status === 404) {
@@ -108,12 +117,10 @@ export const api = {
     return handleResponse<GroomingSession>(response);
   },
 
-  async getAllGroomingSessions(): Promise<GroomingSession[]> {
+  async getAllGroomingSessions(accessToken?: string): Promise<GroomingSession[]> {
     const response = await fetch(`${API_BASE_URL}/grooming-sessions`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: buildHeaders(accessToken),
     });
 
     return handleResponse<GroomingSession[]>(response);

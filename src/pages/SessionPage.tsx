@@ -1,12 +1,14 @@
 import { useParams, Link } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
 import { useRealtimeChannel, type RealtimeMessage } from "@/hooks/useRealtimeChannel"
+import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
 import { api, APIError } from "@/services/api"
 import type { GroomingSession } from "@/types/api"
 
 export default function SessionPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
+  const { session: authSession } = useAuth()
   const [session, setSession] = useState<GroomingSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -64,7 +66,7 @@ export default function SessionPage() {
       setError(null)
 
       try {
-        const sessionData = await api.getGroomingSession(sessionId)
+        const sessionData = await api.getGroomingSession(sessionId, authSession?.access_token)
         if (sessionData) {
           setSession(sessionData)
           // Set channel name only once when session is loaded
@@ -84,7 +86,7 @@ export default function SessionPage() {
     }
 
     fetchSession()
-  }, [sessionId])
+  }, [sessionId, authSession?.access_token])
 
   if (!sessionId) {
     return (

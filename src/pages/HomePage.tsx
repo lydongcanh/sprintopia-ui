@@ -15,14 +15,14 @@ export default function HomePage() {
   const [isLoadingSessions, setIsLoadingSessions] = useState(true)
   const [activeTab, setActiveTab] = useState<'join' | 'create'>('join')
   const navigate = useNavigate()
-  const { user, isAnonymous, isLoading } = useAuth()
+  const { user, session, isAnonymous, isLoading } = useAuth()
 
   // Fetch existing sessions on component mount
   useEffect(() => {
     const fetchSessions = async () => {
       try {
         setIsLoadingSessions(true)
-        const sessions = await api.getAllGroomingSessions()
+        const sessions = await api.getAllGroomingSessions(session?.access_token)
         setExistingSessions(sessions)
         
         // If no sessions exist, default to create tab
@@ -39,7 +39,7 @@ export default function HomePage() {
     }
 
     fetchSessions()
-  }, [])
+  }, [session?.access_token])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)
@@ -62,7 +62,7 @@ export default function HomePage() {
     setIsCreating(true)
 
     try {
-      const session = await api.createGroomingSession({ 
+      const sessionResponse = await api.createGroomingSession({ 
         name: sessionName.trim(),
         // Include user info if authenticated
         ...(user && { 
@@ -72,12 +72,12 @@ export default function HomePage() {
             full_name: user.user_metadata?.full_name
           }
         })
-      })
+      }, session?.access_token)
       
-      if (session) {
+      if (sessionResponse) {
         // Refresh sessions list
         try {
-          const sessions = await api.getAllGroomingSessions()
+          const sessions = await api.getAllGroomingSessions(session?.access_token)
           setExistingSessions(sessions)
         } catch (error) {
           console.error('Failed to refresh sessions:', error)
@@ -90,7 +90,7 @@ export default function HomePage() {
         })
         
         // Navigate to the session page
-        navigate(`/session/${session.id}`)
+        navigate(`/session/${sessionResponse.id}`)
       } else {
         toast.error("Failed to create session", {
           description: "Please try again or contact support if the issue persists.",

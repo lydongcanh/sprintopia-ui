@@ -89,12 +89,16 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       // If user was created successfully, create user in backend and update metadata
       if (data.user) {
         try {
+          // Get the session to access the access token
+          const { data: { session } } = await supabase.auth.getSession()
+          const accessToken = session?.access_token
+          
           // Create user in backend
           const backendUser = await api.createUser({
             email: data.user.email!,
             full_name: userData?.full_name || '',
             external_auth_id: data.user.id
-          })
+          }, accessToken)
           
           // Update Supabase user metadata with internal user ID
           const { error: updateError } = await supabase.auth.updateUser({
