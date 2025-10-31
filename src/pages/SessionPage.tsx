@@ -3,8 +3,16 @@ import { useEffect, useState, useCallback } from "react"
 import { useRealtimeChannel, type RealtimeMessage } from "@/hooks/useRealtimeChannel"
 import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
+import { ParticipantsList } from '@/components/ParticipantsList'
 import { api, APIError } from "@/services/api"
 import type { GroomingSession } from "@/types/api"
+
+interface Participant {
+  user_id: string
+  full_name: string
+  email: string
+  joined_at: string
+}
 
 export default function SessionPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -12,16 +20,33 @@ export default function SessionPage() {
   const [session, setSession] = useState<GroomingSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [messages, setMessages] = useState<RealtimeMessage[]>([])
+  const [participants, setParticipants] = useState<Participant[]>([])
 
   // Store channel name separately to prevent unnecessary re-connections
   const [channelName, setChannelName] = useState<string | null>(null)
 
   // Memoize callbacks to prevent unnecessary re-renders
   const handleMessage = useCallback((message: RealtimeMessage) => {
-    // Store all incoming real-time messages
+    // Log incoming real-time messages
     console.log("Received message:", message)
-    setMessages(prev => [...prev, message])
+    
+    // Handle join/leave events
+    if (message.event === 'user_joined' && message.payload) {
+      const userData = message.payload as { user_id: string; full_name: string; email: string }
+      setParticipants(prev => {
+        // Don't add if already exists
+        if (prev.some(p => p.user_id === userData.user_id)) {
+          return prev
+        }
+        return [...prev, {
+          ...userData,
+          joined_at: new Date().toISOString()
+        }]
+      })
+    } else if (message.event === 'user_left' && message.payload) {
+      const userData = message.payload as { user_id: string }
+      setParticipants(prev => prev.filter(p => p.user_id !== userData.user_id))
+    }
   }, [])
 
   const handleConnect = useCallback(() => {
@@ -90,6 +115,47 @@ export default function SessionPage() {
     fetchSession()
   }, [sessionId, authSession?.access_token])
 
+  // Handle joining and leaving the session
+  useEffect(() => {
+    if (!sessionId || !session || !authSession?.access_token) return
+
+    const joinSession = async () => {
+      try {
+        // Get the internal_user_id from auth session metadata
+        const internalUserId = authSession.user?.user_metadata?.internal_user_id
+        if (!internalUserId) {
+          console.error("No internal_user_id found in user metadata")
+          return
+        }
+
+        await api.joinGroomingSession(sessionId, internalUserId, authSession.access_token)
+        console.log("Successfully joined session")
+      } catch (err) {
+        console.error("Failed to join session:", err)
+      }
+    }
+
+    const leaveSession = async () => {
+      try {
+        const internalUserId = authSession.user?.user_metadata?.internal_user_id
+        if (!internalUserId) return
+
+        await api.leaveGroomingSession(sessionId, internalUserId, authSession.access_token)
+        console.log("Successfully left session")
+      } catch (err) {
+        console.error("Failed to leave session:", err)
+      }
+    }
+
+    // Join when component mounts and session is ready
+    joinSession()
+
+    // Leave when component unmounts
+    return () => {
+      leaveSession()
+    }
+  }, [sessionId, session, authSession])
+
   if (!sessionId) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -157,75 +223,7 @@ export default function SessionPage() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          <div className="border rounded-lg p-6">
-            <h3 className="font-semibold mb-4">Real-time Messages</h3>
-            <div className="space-y-3 max-h-96 overflow-y-auto">
-              {messages.length === 0 ? (
-                <p className="text-sm text-muted-foreground italic">
-                  No messages received yet. Waiting for real-time updates...
-                </p>
-              ) : (
-                messages.map((message, index) => (
-                  <div 
-                    key={`${message.event}-${message.ref}-${index}`} 
-                    className="bg-muted/50 rounded-md p-3 text-sm border-l-4 border-primary"
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-medium text-primary">
-                        {message.event || 'Unknown Event'}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {new Date().toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <div className="space-y-1">
-                      {message.payload != null && (
-                        <div>
-                          <span className="text-muted-foreground">Payload:</span>
-                          <pre className="text-xs bg-background p-2 rounded mt-1 overflow-x-auto">
-                            {typeof message.payload === 'string' 
-                              ? message.payload 
-                              : JSON.stringify(message.payload, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                      {message.type && (
-                        <div>
-                          <span className="text-muted-foreground">Type:</span>
-                          <span className="ml-2 text-xs font-mono">{message.type}</span>
-                        </div>
-                      )}
-                      {message.ref && (
-                        <div>
-                          <span className="text-muted-foreground">Ref:</span>
-                          <span className="ml-2 text-xs font-mono">{message.ref}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            {messages.length > 0 && (
-              <div className="mt-4 pt-4 border-t">
-                <p className="text-xs text-muted-foreground">
-                  {messages.length} message{messages.length === 1 ? '' : 's'} received
-                </p>
-                <button 
-                  onClick={() => setMessages([])}
-                  className="text-xs text-primary hover:underline mt-1"
-                >
-                  Clear messages
-                </button>
-              </div>
-            )}
-          </div>
-          
-          <div className="text-center text-muted-foreground">
-            <p className="text-sm">
-              This is the grooming session page. Real-time features are {isConnected ? "active" : "inactive"}.
-            </p>
-          </div>
+          <ParticipantsList participants={participants} />
         </div>
       </main>
     </div>

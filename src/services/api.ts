@@ -125,6 +125,36 @@ export const api = {
 
     return handleResponse<GroomingSession[]>(response);
   },
+
+  async joinGroomingSession(sessionId: string, userId: string, accessToken?: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/grooming-sessions/${sessionId}/join`, {
+      method: "POST",
+      headers: buildHeaders(accessToken),
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    if (!response.ok) {
+      throw new APIError(
+        `Failed to join session: ${response.status} ${response.statusText}`,
+        response.status
+      );
+    }
+  },
+
+  async leaveGroomingSession(sessionId: string, userId: string, accessToken?: string): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/grooming-sessions/${sessionId}/leave`, {
+      method: "POST",
+      headers: buildHeaders(accessToken),
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    if (!response.ok) {
+      throw new APIError(
+        `Failed to leave session: ${response.status} ${response.statusText}`,
+        response.status
+      );
+    }
+  },
 };
 
 export default api;
