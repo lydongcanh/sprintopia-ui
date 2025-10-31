@@ -139,17 +139,6 @@ export default function SessionPage() {
                 </Link>
                 <h1 className="text-2xl font-bold text-primary">{session.name}</h1>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Session ID: {session.id} • Status: {session.status}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Channel: {session.real_time_channel_name}
-              </p>
-              {isAnonymous && (
-                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                  ⚠️ Anonymous session - changes won't be saved to your account
-                </p>
-              )}
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">

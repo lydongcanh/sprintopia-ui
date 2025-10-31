@@ -81,6 +81,17 @@ export const api = {
 
     return handleResponse<GroomingSession>(response);
   },
+
+  async getAllGroomingSessions(): Promise<GroomingSession[]> {
+    const response = await fetch(`${API_BASE_URL}/grooming-sessions`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    return handleResponse<GroomingSession[]>(response);
+  },
 };
 
 export default api;
