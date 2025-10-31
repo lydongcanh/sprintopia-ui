@@ -12,14 +12,16 @@ export default function SessionPage() {
   const [session, setSession] = useState<GroomingSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [messages, setMessages] = useState<RealtimeMessage[]>([])
 
   // Store channel name separately to prevent unnecessary re-connections
   const [channelName, setChannelName] = useState<string | null>(null)
 
   // Memoize callbacks to prevent unnecessary re-renders
   const handleMessage = useCallback((message: RealtimeMessage) => {
-    // Handle incoming real-time messages here
+    // Store all incoming real-time messages
     console.log("Received message:", message)
+    setMessages(prev => [...prev, message])
   }, [])
 
   const handleConnect = useCallback(() => {
@@ -155,29 +157,68 @@ export default function SessionPage() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="border rounded-lg p-6">
-              <h3 className="font-semibold mb-4">Real-time Status</h3>
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">
-                  Connection: <span className="capitalize font-medium">{connectionStatus}</span>
+          <div className="border rounded-lg p-6">
+            <h3 className="font-semibold mb-4">Real-time Messages</h3>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {messages.length === 0 ? (
+                <p className="text-sm text-muted-foreground italic">
+                  No messages received yet. Waiting for real-time updates...
                 </p>
-                {!isConnected && connectionStatus === "disconnected" && (
-                  <p className="text-xs text-muted-foreground">
-                    💡 Real-time features require Supabase configuration
-                  </p>
-                )}
-              </div>
+              ) : (
+                messages.map((message, index) => (
+                  <div 
+                    key={`${message.event}-${message.ref}-${index}`} 
+                    className="bg-muted/50 rounded-md p-3 text-sm border-l-4 border-primary"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-medium text-primary">
+                        {message.event || 'Unknown Event'}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date().toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <div className="space-y-1">
+                      {message.payload != null && (
+                        <div>
+                          <span className="text-muted-foreground">Payload:</span>
+                          <pre className="text-xs bg-background p-2 rounded mt-1 overflow-x-auto">
+                            {typeof message.payload === 'string' 
+                              ? message.payload 
+                              : JSON.stringify(message.payload, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                      {message.type && (
+                        <div>
+                          <span className="text-muted-foreground">Type:</span>
+                          <span className="ml-2 text-xs font-mono">{message.type}</span>
+                        </div>
+                      )}
+                      {message.ref && (
+                        <div>
+                          <span className="text-muted-foreground">Ref:</span>
+                          <span className="ml-2 text-xs font-mono">{message.ref}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
-            
-            <div className="border rounded-lg p-6">
-              <h3 className="font-semibold mb-4">Session Info</h3>
-              <div className="space-y-2 text-sm">
-                <p><span className="text-muted-foreground">Created:</span> {new Date(session.created_at).toLocaleString()}</p>
-                <p><span className="text-muted-foreground">Updated:</span> {new Date(session.updated_at).toLocaleString()}</p>
-                <p><span className="text-muted-foreground">Status:</span> {session.status}</p>
+            {messages.length > 0 && (
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-xs text-muted-foreground">
+                  {messages.length} message{messages.length === 1 ? '' : 's'} received
+                </p>
+                <button 
+                  onClick={() => setMessages([])}
+                  className="text-xs text-primary hover:underline mt-1"
+                >
+                  Clear messages
+                </button>
               </div>
-            </div>
+            )}
           </div>
           
           <div className="text-center text-muted-foreground">
