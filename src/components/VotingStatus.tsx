@@ -1,20 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, Clock, Eye } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-interface Participant {
-  user_id: string
-  full_name: string
-  email: string
-  tab_count: number
-}
-
-interface Estimation {
-  user_id: string
-  full_name: string
-  email: string
-  estimation_value: number
-}
+import type { Participant, Estimation } from '@/types/session'
 
 interface VotingStatusProps {
   readonly participants: Participant[]

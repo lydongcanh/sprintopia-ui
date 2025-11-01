@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, Timer } from 'lucide-react'
+import { STORY_POINTS } from '@/constants/estimation'
 
 interface SimpleEstimationCardProps {
   readonly onSubmitEstimation: (value: number) => void
@@ -10,18 +11,6 @@ interface SimpleEstimationCardProps {
   readonly hasActiveTurn: boolean
   readonly isRevealed: boolean
 }
-
-// Simplified Fibonacci sequence
-const STORY_POINTS = [
-  { value: 0.5, label: '☕', color: '' },
-  { value: 1, label: '1', color: '' },
-  { value: 2, label: '2', color: '' },
-  { value: 3, label: '3', color: '' },
-  { value: 5, label: '5', color: '' },
-  { value: 8, label: '8', color: '' },
-  { value: 13, label: '13', color: '' },
-  { value: 21, label: '21', color: '' },
-]
 
 export function SimpleEstimationCard({
   onSubmitEstimation,

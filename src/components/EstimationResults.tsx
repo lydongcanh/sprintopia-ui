@@ -1,13 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { RotateCcw, Target, TrendingUp } from 'lucide-react'
-
-interface Estimation {
-  user_id: string
-  full_name: string
-  email: string
-  estimation_value: number
-}
+import { CONSENSUS_THRESHOLD } from '@/constants/estimation'
+import type { Estimation } from '@/types/session'
 
 interface EstimationResultsProps {
   readonly estimations: Estimation[]
@@ -29,8 +24,8 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
     return value.toString()
   }
 
-  // Check for consensus (all values within 1-2 points of each other)
-  const hasConsensus = values.length > 0 && (values.at(-1)! - values[0] <= 2)
+  // Check for consensus (all values within threshold)
+  const hasConsensus = values.length > 0 && (values.at(-1)! - values[0] <= CONSENSUS_THRESHOLD)
 
   return (
     <Card className="border">

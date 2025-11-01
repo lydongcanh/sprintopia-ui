@@ -1,5 +1,7 @@
 import { useParams, Link } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
+import type { GroomingSession } from "@/types/api"
+import type { EstimationState } from "@/types/session"
 import { useRealtimeChannel, type RealtimeMessage } from "@/hooks/useRealtimeChannel"
 import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
@@ -10,20 +12,6 @@ import { ServerStatus } from '@/components/ServerStatus'
 import { Button } from '@/components/ui/button'
 import { api, APIError } from "@/services/api"
 import { toast } from 'sonner'
-import type { GroomingSession } from "@/types/api"
-
-interface EstimationState {
-  isActive: boolean
-  currentTurnId: string | null
-  estimations: Array<{
-    user_id: string
-    full_name: string
-    email: string
-    estimation_value: number
-  }>
-  userHasSubmitted: boolean
-  showResults: boolean
-}
 
 export default function SessionPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
@@ -63,7 +51,6 @@ export default function SessionPage() {
         userHasSubmitted: false,
         showResults: false
       }))
-      // No toast - visual feedback is enough
     } else if (message.event === 'estimation_submitted' && message.payload) {
       const payload = message.payload as { 
         user_id: string; 
@@ -85,15 +72,12 @@ export default function SessionPage() {
           }
         ]
       }))
-      
-      // No toast for vote submissions - VotingStatus shows this visually
     } else if (message.event === 'end_estimation_turn' && message.payload) {
       setEstimationState(prev => ({
         ...prev,
         isActive: false,
         showResults: true
       }))
-      // No toast - visual feedback is enough
     }
   }, [])
 
@@ -164,7 +148,6 @@ export default function SessionPage() {
       if (!success) {
         throw new Error("Failed to send estimation message")
       }
-      // No success toast - visual feedback is enough
     } catch (err) {
       console.error("Failed to submit estimation:", err)
       toast.error("Failed to submit estimate")
@@ -196,9 +179,7 @@ export default function SessionPage() {
         session_id: sessionId
       })
 
-      if (success) {
-        // No success toast - will show when message is received
-      } else {
+      if (!success) {
         throw new Error("Failed to send start estimation turn message")
       }
     } catch (err) {
@@ -238,9 +219,7 @@ export default function SessionPage() {
         estimations: estimationState.estimations
       })
 
-      if (success) {
-        // No success toast - will show when message is received
-      } else {
+      if (!success) {
         throw new Error("Failed to send end estimation turn message")
       }
     } catch (err) {
