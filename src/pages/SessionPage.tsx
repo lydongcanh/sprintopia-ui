@@ -4,14 +4,26 @@ import { useRealtimeChannel, type RealtimeMessage } from "@/hooks/useRealtimeCha
 import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
 import { ParticipantsList } from '@/components/ParticipantsList'
+import { EstimationCard } from '@/components/EstimationCard'
+import { EstimationResults } from '@/components/EstimationResults'
+import { VotingStatus } from '@/components/VotingStatus'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { api, APIError } from "@/services/api"
+import { toast } from 'sonner'
 import type { GroomingSession } from "@/types/api"
 
-interface Participant {
-  user_id: string
-  full_name: string
-  email: string
-  joined_at: string
+interface EstimationState {
+  isActive: boolean
+  currentTurnId: string | null
+  estimations: Array<{
+    user_id: string
+    full_name: string
+    email: string
+    estimation_value: number
+  }>
+  userHasSubmitted: boolean
+  showResults: boolean
 }
 
 export default function SessionPage() {
@@ -20,7 +32,17 @@ export default function SessionPage() {
   const [session, setSession] = useState<GroomingSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [participants, setParticipants] = useState<Participant[]>([])
+
+  // Estimation state
+  const [estimationState, setEstimationState] = useState<EstimationState>({
+    isActive: false,
+    currentTurnId: null,
+    estimations: [],
+    userHasSubmitted: false,
+    showResults: false
+  })
+  const [isStartingNewTurn, setIsStartingNewTurn] = useState(false)
+  const [isEndingTurn, setIsEndingTurn] = useState(false)
 
   // Store channel name separately to prevent unnecessary re-connections
   const [channelName, setChannelName] = useState<string | null>(null)
@@ -30,23 +52,64 @@ export default function SessionPage() {
     // Log incoming real-time messages
     console.log("Received message:", message)
     
-    // Handle join/leave events
-    if (message.event === 'user_joined' && message.payload) {
-      const userData = message.payload as { user_id: string; full_name: string; email: string }
-      setParticipants(prev => {
-        // Don't add if already exists
-        if (prev.some(p => p.user_id === userData.user_id)) {
-          return prev
-        }
-        return [...prev, {
-          ...userData,
-          joined_at: new Date().toISOString()
-        }]
+    // Handle estimation-related events
+    if (message.event === 'start_estimation_turn' && message.payload) {
+      const { estimation_turn_id } = message.payload as { estimation_turn_id: string }
+      setEstimationState(prev => ({
+        ...prev,
+        isActive: true,
+        currentTurnId: estimation_turn_id,
+        estimations: [],
+        userHasSubmitted: false,
+        showResults: false
+      }))
+      toast.success("New estimation round started! 🎯", {
+        description: "Submit your estimate for this story",
+        duration: 4000,
       })
-    } else if (message.event === 'user_left' && message.payload) {
-      const userData = message.payload as { user_id: string }
-      setParticipants(prev => prev.filter(p => p.user_id !== userData.user_id))
+    } else if (message.event === 'estimation_submitted' && message.payload) {
+      const payload = message.payload as { 
+        user_id: string; 
+        full_name: string; 
+        email: string; 
+        estimation_value: number; 
+        submitted_at: string;
+      }
+      
+      setEstimationState(prev => ({
+        ...prev,
+        estimations: [
+          ...prev.estimations.filter(e => e.user_id !== payload.user_id), // Remove existing estimation
+          {
+            user_id: payload.user_id,
+            full_name: payload.full_name,
+            email: payload.email,
+            estimation_value: payload.estimation_value
+          }
+        ]
+      }))
+      
+      // Show toast for other users' submissions (not your own)
+      const currentUserId = authSession?.user?.user_metadata?.internal_user_id || authSession?.user?.id
+      if (payload.user_id !== currentUserId) {
+        // Only show toast, no description to reduce noise
+        toast.info(`${payload.full_name} voted! 🎯`)
+      }
+    } else if (message.event === 'end_estimation_turn' && message.payload) {
+      setEstimationState(prev => ({
+        ...prev,
+        isActive: false,
+        showResults: true
+      }))
+      // Only show toast for remote end turn events
+      toast.info("Round ended! 📊")
     }
+  }, [authSession?.user?.id, authSession?.user?.user_metadata?.internal_user_id])
+
+  const handlePresenceUpdate = useCallback(() => {
+    // This will be called whenever presence state changes
+    // The actual participant list will be managed by the getParticipants function
+    console.log("Presence state updated")
   }, [])
 
   const handleConnect = useCallback(() => {
@@ -62,15 +125,141 @@ export default function SessionPage() {
   }, [])
 
   // Real-time channel setup
-  const { connectionStatus, isConnected } = useRealtimeChannel(
+  const { connectionStatus, isConnected, trackPresence, untrackPresence, getParticipants, sendMessage } = useRealtimeChannel(
     channelName,
     {
       onMessage: handleMessage,
       onConnect: handleConnect,
       onDisconnect: handleDisconnect,
       onError: handleError,
+      onPresenceUpdate: handlePresenceUpdate,
     }
   )
+
+  // Estimation functions
+  const handleEstimationSubmit = async (value: number) => {
+    if (!sessionId || !authSession?.user || !estimationState.currentTurnId || !sendMessage) return
+
+    try {
+      const userId = authSession.user.user_metadata?.internal_user_id || authSession.user.id
+      const userName = authSession.user.user_metadata?.full_name || authSession.user.email || 'Anonymous'
+      const userEmail = authSession.user.email || 'no-email@example.com'
+      
+      // Update local state immediately
+      setEstimationState(prev => ({
+        ...prev,
+        userHasSubmitted: true,
+        estimations: [
+          ...prev.estimations.filter(e => e.user_id !== userId), // Remove existing estimation
+          {
+            user_id: userId,
+            full_name: userName,
+            email: userEmail,
+            estimation_value: value
+          }
+        ]
+      }))
+      
+      // Send estimation via real-time
+      const success = sendMessage('estimation_submitted', {
+        user_id: userId,
+        full_name: userName,
+        email: userEmail,
+        estimation_value: value,
+        submitted_at: new Date().toISOString(),
+        turn_id: estimationState.currentTurnId
+      })
+
+      if (success) {
+        toast.success("Estimate submitted! ✅")
+      } else {
+        throw new Error("Failed to send estimation message")
+      }
+    } catch (err) {
+      console.error("Failed to submit estimation:", err)
+      toast.error("Failed to submit estimate")
+    }
+  }
+
+  const handleStartNewTurn = async () => {
+    if (!sessionId || !sendMessage) return
+
+    setIsStartingNewTurn(true)
+    try {
+      // Generate a new turn ID
+      const turnId = `turn_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+      
+      // Update local state immediately
+      setEstimationState(prev => ({
+        ...prev,
+        isActive: true,
+        currentTurnId: turnId,
+        estimations: [],
+        userHasSubmitted: false,
+        showResults: false
+      }))
+      
+      // Send start estimation turn message via real-time
+      const success = sendMessage('start_estimation_turn', {
+        estimation_turn_id: turnId,
+        started_at: new Date().toISOString(),
+        session_id: sessionId
+      })
+
+      if (success) {
+        toast.success("New round started! 🚀")
+      } else {
+        throw new Error("Failed to send start estimation turn message")
+      }
+    } catch (err) {
+      console.error("Failed to start new turn:", err)
+      toast.error("Failed to start new round")
+      // Revert local state on error
+      setEstimationState(prev => ({
+        ...prev,
+        isActive: false,
+        currentTurnId: null,
+        estimations: [],
+        userHasSubmitted: false,
+        showResults: false
+      }))
+    } finally {
+      setIsStartingNewTurn(false)
+    }
+  }
+
+  const handleEndEstimationTurn = async () => {
+    if (!sessionId || !estimationState.currentTurnId || !sendMessage) return
+
+    setIsEndingTurn(true)
+    try {
+      // Update local state immediately
+      setEstimationState(prev => ({
+        ...prev,
+        isActive: false,
+        showResults: true
+      }))
+      
+      // Send end estimation turn message via real-time
+      const success = sendMessage('end_estimation_turn', {
+        estimation_turn_id: estimationState.currentTurnId,
+        ended_at: new Date().toISOString(),
+        session_id: sessionId,
+        estimations: estimationState.estimations
+      })
+
+      if (success) {
+        toast.success("Round ended! 📊")
+      } else {
+        throw new Error("Failed to send end estimation turn message")
+      }
+    } catch (err) {
+      console.error("Failed to end turn:", err)
+      toast.error("Failed to end round")
+    } finally {
+      setIsEndingTurn(false)
+    }
+  }
 
   const getStatusColor = () => {
     switch (connectionStatus) {
@@ -115,46 +304,28 @@ export default function SessionPage() {
     fetchSession()
   }, [sessionId, authSession?.access_token])
 
-  // Handle joining and leaving the session
+  // Handle joining and leaving the session using Presence
   useEffect(() => {
-    if (!sessionId || !session || !authSession?.access_token) return
+    if (!sessionId || !session || !authSession?.user || !isConnected || !trackPresence || !untrackPresence) return
 
-    const joinSession = async () => {
-      try {
-        // Get the internal_user_id from auth session metadata
-        const internalUserId = authSession.user?.user_metadata?.internal_user_id
-        if (!internalUserId) {
-          console.error("No internal_user_id found in user metadata")
-          return
-        }
-
-        await api.joinGroomingSession(sessionId, internalUserId, authSession.access_token)
-        console.log("Successfully joined session")
-      } catch (err) {
-        console.error("Failed to join session:", err)
-      }
+    const userInfo = {
+      user_id: authSession.user.user_metadata?.internal_user_id || authSession.user.id,
+      full_name: authSession.user.user_metadata?.full_name || authSession.user.email || 'Anonymous',
+      email: authSession.user.email || 'no-email@example.com'
     }
 
-    const leaveSession = async () => {
-      try {
-        const internalUserId = authSession.user?.user_metadata?.internal_user_id
-        if (!internalUserId) return
-
-        await api.leaveGroomingSession(sessionId, internalUserId, authSession.access_token)
-        console.log("Successfully left session")
-      } catch (err) {
-        console.error("Failed to leave session:", err)
-      }
+    // Track presence when connected
+    const success = trackPresence(userInfo)
+    if (success) {
+      console.log("Successfully tracking presence for user:", userInfo.full_name)
     }
 
-    // Join when component mounts and session is ready
-    joinSession()
-
-    // Leave when component unmounts
+    // Untrack presence when component unmounts or connection lost
     return () => {
-      leaveSession()
+      untrackPresence()
+      console.log("Stopped tracking presence")
     }
-  }, [sessionId, session, authSession])
+  }, [sessionId, session, authSession?.user, isConnected, trackPresence, untrackPresence])
 
   if (!sessionId) {
     return (
@@ -221,9 +392,82 @@ export default function SessionPage() {
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          <ParticipantsList participants={participants} />
+          <ParticipantsList participants={getParticipants()} />
+          
+          {/* Poker-Style Voting Status */}
+          <VotingStatus 
+            participants={getParticipants()}
+            estimations={estimationState.estimations}
+            isActive={estimationState.isActive}
+            showResults={estimationState.showResults}
+          />
+          
+          {/* Estimation Section */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Estimation Card */}
+            <EstimationCard
+              onSubmitEstimation={handleEstimationSubmit}
+              currentEstimation={estimationState.userHasSubmitted ? 
+                estimationState.estimations.find(e => 
+                  e.user_id === (authSession?.user?.user_metadata?.internal_user_id || authSession?.user?.id)
+                )?.estimation_value : undefined}
+              hasActiveTurn={estimationState.isActive}
+              participantCount={getParticipants().length}
+              estimationCount={estimationState.estimations.length}
+              isRevealed={estimationState.showResults}
+            />
+            
+            {/* Estimation Results or Controls */}
+            <div className="space-y-4">
+              {estimationState.showResults ? (
+                <EstimationResults
+                  estimations={estimationState.estimations}
+                  onStartNewTurn={handleStartNewTurn}
+                  isStartingNewTurn={isStartingNewTurn}
+                />
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Estimation Controls</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {estimationState.isActive ? (
+                      <div className="space-y-4">
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">
+                            Estimation in progress... {estimationState.estimations.length} votes submitted
+                          </p>
+                        </div>
+                        <Button 
+                          onClick={handleEndEstimationTurn}
+                          disabled={isEndingTurn || estimationState.estimations.length === 0}
+                          variant="outline"
+                          className="w-full"
+                        >
+                          {isEndingTurn ? 'Ending...' : 'End Estimation & Show Results'}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Start a new estimation round to begin voting
+                        </p>
+                        <Button 
+                          onClick={handleStartNewTurn}
+                          disabled={isStartingNewTurn}
+                          className="w-full"
+                        >
+                          {isStartingNewTurn ? 'Starting...' : 'Start Estimation'}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </div>

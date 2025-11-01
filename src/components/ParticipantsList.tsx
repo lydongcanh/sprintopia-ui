@@ -8,6 +8,7 @@ export interface Participant {
   full_name: string
   email: string
   joined_at?: string
+  tab_count?: number
 }
 
 interface ParticipantsListProps {
@@ -83,6 +84,11 @@ export function ParticipantsList({ participants, currentUserId, className = '' }
                       <Badge variant="secondary" className="text-xs">
                         <UserCheck className="h-3 w-3 mr-1" />
                         You
+                      </Badge>
+                    )}
+                    {participant.tab_count && participant.tab_count > 1 && (
+                      <Badge variant="outline" className="text-xs">
+                        {participant.tab_count} tabs
                       </Badge>
                     )}
                   </div>
