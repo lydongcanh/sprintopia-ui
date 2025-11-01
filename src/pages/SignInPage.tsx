@@ -30,8 +30,12 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <AuthForm mode="signin" onSuccess={handleSuccess} />
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-background/80 backdrop-blur-sm border-2 border-border rounded-2xl shadow-2xl p-8">
+          <AuthForm mode="signin" onSuccess={handleSuccess} />
+        </div>
+      </div>
     </div>
   )
 }
