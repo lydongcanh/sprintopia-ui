@@ -3,12 +3,11 @@ import { useEffect, useState, useCallback } from "react"
 import { useRealtimeChannel, type RealtimeMessage } from "@/hooks/useRealtimeChannel"
 import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
-import { ParticipantsList } from '@/components/ParticipantsList'
-import { EstimationCard } from '@/components/EstimationCard'
+import { SimpleEstimationCard } from '@/components/SimpleEstimationCard'
 import { EstimationResults } from '@/components/EstimationResults'
 import { VotingStatus } from '@/components/VotingStatus'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { api, APIError } from "@/services/api"
 import { toast } from 'sonner'
 import type { GroomingSession } from "@/types/api"
@@ -43,6 +42,7 @@ export default function SessionPage() {
   })
   const [isStartingNewTurn, setIsStartingNewTurn] = useState(false)
   const [isEndingTurn, setIsEndingTurn] = useState(false)
+  const [hasAutoStarted, setHasAutoStarted] = useState(false)
 
   // Store channel name separately to prevent unnecessary re-connections
   const [channelName, setChannelName] = useState<string | null>(null)
@@ -63,10 +63,7 @@ export default function SessionPage() {
         userHasSubmitted: false,
         showResults: false
       }))
-      toast.success("New estimation round started! 🎯", {
-        description: "Submit your estimate for this story",
-        duration: 4000,
-      })
+      // No toast - visual feedback is enough
     } else if (message.event === 'estimation_submitted' && message.payload) {
       const payload = message.payload as { 
         user_id: string; 
@@ -89,22 +86,16 @@ export default function SessionPage() {
         ]
       }))
       
-      // Show toast for other users' submissions (not your own)
-      const currentUserId = authSession?.user?.user_metadata?.internal_user_id || authSession?.user?.id
-      if (payload.user_id !== currentUserId) {
-        // Only show toast, no description to reduce noise
-        toast.info(`${payload.full_name} voted! 🎯`)
-      }
+      // No toast for vote submissions - VotingStatus shows this visually
     } else if (message.event === 'end_estimation_turn' && message.payload) {
       setEstimationState(prev => ({
         ...prev,
         isActive: false,
         showResults: true
       }))
-      // Only show toast for remote end turn events
-      toast.info("Round ended! 📊")
+      // No toast - visual feedback is enough
     }
-  }, [authSession?.user?.id, authSession?.user?.user_metadata?.internal_user_id])
+  }, [])
 
   const handlePresenceUpdate = useCallback(() => {
     // This will be called whenever presence state changes
@@ -170,18 +161,17 @@ export default function SessionPage() {
         turn_id: estimationState.currentTurnId
       })
 
-      if (success) {
-        toast.success("Estimate submitted! ✅")
-      } else {
+      if (!success) {
         throw new Error("Failed to send estimation message")
       }
+      // No success toast - visual feedback is enough
     } catch (err) {
       console.error("Failed to submit estimation:", err)
       toast.error("Failed to submit estimate")
     }
   }
 
-  const handleStartNewTurn = async () => {
+  const handleStartNewTurn = useCallback(async () => {
     if (!sessionId || !sendMessage) return
 
     setIsStartingNewTurn(true)
@@ -207,7 +197,7 @@ export default function SessionPage() {
       })
 
       if (success) {
-        toast.success("New round started! 🚀")
+        // No success toast - will show when message is received
       } else {
         throw new Error("Failed to send start estimation turn message")
       }
@@ -226,7 +216,7 @@ export default function SessionPage() {
     } finally {
       setIsStartingNewTurn(false)
     }
-  }
+  }, [sessionId, sendMessage])
 
   const handleEndEstimationTurn = async () => {
     if (!sessionId || !estimationState.currentTurnId || !sendMessage) return
@@ -249,7 +239,7 @@ export default function SessionPage() {
       })
 
       if (success) {
-        toast.success("Round ended! 📊")
+        // No success toast - will show when message is received
       } else {
         throw new Error("Failed to send end estimation turn message")
       }
@@ -327,6 +317,20 @@ export default function SessionPage() {
     }
   }, [sessionId, session, authSession?.user, isConnected, trackPresence, untrackPresence])
 
+  // Auto-start estimation turn when session first opens
+  useEffect(() => {
+    if (!sessionId || !session || !isConnected || !sendMessage) return
+    
+    // Only auto-start if there's no active turn and no results showing
+    if (!estimationState.isActive && !estimationState.showResults && estimationState.currentTurnId === null && !hasAutoStarted) {
+      // Mark as auto-started immediately to prevent UI flash
+      setHasAutoStarted(true)
+      
+      // Start immediately without delay
+      handleStartNewTurn()
+    }
+  }, [sessionId, session, isConnected, sendMessage, estimationState.isActive, estimationState.showResults, estimationState.currentTurnId, handleStartNewTurn, hasAutoStarted])
+
   if (!sessionId) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
@@ -392,82 +396,88 @@ export default function SessionPage() {
         </div>
       </header>
       
-            <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-6 max-w-7xl">
         <div className="space-y-6">
-          <ParticipantsList participants={getParticipants()} />
-          
-          {/* Poker-Style Voting Status */}
-          <VotingStatus 
-            participants={getParticipants()}
-            estimations={estimationState.estimations}
-            isActive={estimationState.isActive}
-            showResults={estimationState.showResults}
-          />
-          
-          {/* Estimation Section */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Estimation Card */}
-            <EstimationCard
-              onSubmitEstimation={handleEstimationSubmit}
-              currentEstimation={estimationState.userHasSubmitted ? 
-                estimationState.estimations.find(e => 
-                  e.user_id === (authSession?.user?.user_metadata?.internal_user_id || authSession?.user?.id)
-                )?.estimation_value : undefined}
-              hasActiveTurn={estimationState.isActive}
-              participantCount={getParticipants().length}
-              estimationCount={estimationState.estimations.length}
-              isRevealed={estimationState.showResults}
-            />
-            
-            {/* Estimation Results or Controls */}
-            <div className="space-y-4">
-              {estimationState.showResults ? (
-                <EstimationResults
-                  estimations={estimationState.estimations}
-                  onStartNewTurn={handleStartNewTurn}
-                  isStartingNewTurn={isStartingNewTurn}
-                />
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Estimation Controls</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {estimationState.isActive ? (
-                      <div className="space-y-4">
-                        <div className="text-center">
-                          <p className="text-sm text-muted-foreground">
-                            Estimation in progress... {estimationState.estimations.length} votes submitted
-                          </p>
-                        </div>
-                        <Button 
-                          onClick={handleEndEstimationTurn}
-                          disabled={isEndingTurn || estimationState.estimations.length === 0}
-                          variant="outline"
-                          className="w-full"
-                        >
-                          {isEndingTurn ? 'Ending...' : 'End Estimation & Show Results'}
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Start a new estimation round to begin voting
-                        </p>
-                        <Button 
-                          onClick={handleStartNewTurn}
-                          disabled={isStartingNewTurn}
-                          className="w-full"
-                        >
-                          {isStartingNewTurn ? 'Starting...' : 'Start Estimation'}
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+          {/* Loading state while auto-starting */}
+          {!estimationState.isActive && !estimationState.showResults && hasAutoStarted && (
+            <div className="text-center py-20">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-6"></div>
+              <p className="text-xl text-muted-foreground">Starting estimation round...</p>
+            </div>
+          )}
+
+          {/* Active Estimation - Show poker table and voting */}
+          {(estimationState.isActive || estimationState.showResults) && (
+            <div className="space-y-6">
+              {/* Poker Table - Shows all participants and their voting status */}
+              <VotingStatus 
+                participants={getParticipants()}
+                estimations={estimationState.estimations}
+                isActive={estimationState.isActive}
+                showResults={estimationState.showResults}
+              />
+
+              {/* Voting Interface - Show when round is active */}
+              {estimationState.isActive && !estimationState.showResults && (
+                <>
+                  <div className="w-full">
+                    <SimpleEstimationCard
+                      onSubmitEstimation={handleEstimationSubmit}
+                      currentEstimation={estimationState.userHasSubmitted ? 
+                        estimationState.estimations.find(e => 
+                          e.user_id === (authSession?.user?.user_metadata?.internal_user_id || authSession?.user?.id)
+                        )?.estimation_value : undefined}
+                      hasActiveTurn={estimationState.isActive}
+                      isRevealed={estimationState.showResults}
+                    />
+                  </div>
+                  
+                  {/* Reveal Button - Separate row */}
+                  {estimationState.estimations.length > 0 && (
+                    <div className="flex justify-center">
+                      <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200 shadow-lg">
+                        <CardContent className="flex items-center gap-6 p-6">
+                          <div className="text-5xl">📊</div>
+                          <div className="flex-1 min-w-[200px]">
+                            <p className="text-lg font-semibold text-gray-900 mb-2">
+                              {estimationState.estimations.length}/{getParticipants().length} Team Members Voted
+                            </p>
+                            <div className="w-full bg-gray-200 rounded-full h-3">
+                              <div 
+                                className="bg-gradient-to-r from-orange-400 to-red-500 h-3 rounded-full transition-all duration-500"
+                                style={{ 
+                                  width: `${(estimationState.estimations.length / Math.max(getParticipants().length, 1)) * 100}%` 
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <Button 
+                            onClick={handleEndEstimationTurn}
+                            disabled={isEndingTurn}
+                            size="lg"
+                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 h-14 px-8 text-lg"
+                          >
+                            {isEndingTurn ? 'Revealing...' : '🎭 Reveal Results'}
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Results - Show when round is complete */}
+              {estimationState.showResults && (
+                <div className="max-w-2xl mx-auto">
+                  <EstimationResults
+                    estimations={estimationState.estimations}
+                    onStartNewTurn={handleStartNewTurn}
+                    isStartingNewTurn={isStartingNewTurn}
+                  />
+                </div>
               )}
             </div>
-          </div>
+          )}
         </div>
       </main>
     </div>
