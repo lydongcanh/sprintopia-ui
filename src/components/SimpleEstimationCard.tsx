@@ -21,7 +21,6 @@ const STORY_POINTS = [
   { value: 8, label: '8', color: '' },
   { value: 13, label: '13', color: '' },
   { value: 21, label: '21', color: '' },
-  { value: -1, label: '?', color: '' },
 ]
 
 export function SimpleEstimationCard({

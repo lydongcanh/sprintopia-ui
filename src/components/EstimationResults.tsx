@@ -16,12 +16,17 @@ interface EstimationResultsProps {
 }
 
 export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTurn = false }: EstimationResultsProps) {
-  // Calculate simple statistics
-  const values = estimations.map(e => e.estimation_value).filter(v => v >= 0).sort((a, b) => a - b)
+  // Calculate simple statistics - filter out invalid values (< 0 or undefined)
+  const values = estimations
+    .map(e => e.estimation_value)
+    .filter(v => v !== undefined && v !== null && v >= 0)
+    .sort((a, b) => a - b)
   const average = values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : 0
   
-  const formatValue = (value: number) => {
-    return value === 0.5 ? '½' : value.toString()
+  const formatValue = (value: number | undefined) => {
+    if (value === undefined || value === null) return '?'
+    if (value === 0.5) return '½'
+    return value.toString()
   }
 
   // Check for consensus (all values within 1-2 points of each other)
@@ -49,11 +54,11 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
                   </div>
                 </div>
               ) : (
-                <div className="space-y-3">
+                  <div className="space-y-3">
                   <h3 className="text-xl font-semibold text-orange-600">Let's Discuss</h3>
                   <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <TrendingUp className="w-5 h-5" />
-                    <span className="text-lg">Range: {formatValue(values[0])} - {formatValue(values.at(-1)!)} points</span>
+                    <span className="text-lg">Range: {formatValue(values[0])} - {formatValue(values.at(-1))} points</span>
                   </div>
                 </div>
               )}
