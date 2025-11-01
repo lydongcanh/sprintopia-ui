@@ -4,25 +4,12 @@ import { useAuth } from '@/hooks/useAuth'
 import { Button } from '@/components/ui/button'
 
 export function UserMenu() {
-  const { user, isAnonymous, signOut } = useAuth()
+  const { user, signOut } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const handleSignOut = async () => {
     await signOut()
     setIsMenuOpen(false)
-  }
-
-  if (isAnonymous) {
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">Anonymous User</span>
-        <Link to="/auth/signin">
-          <Button variant="outline" size="sm">
-            Sign In
-          </Button>
-        </Link>
-      </div>
-    )
   }
 
   if (!user) {

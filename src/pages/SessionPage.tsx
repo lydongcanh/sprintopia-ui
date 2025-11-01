@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { useEffect, useState, useCallback } from "react"
 import type { GroomingSession } from "@/types/api"
 import type { EstimationState } from "@/types/session"
@@ -15,10 +15,18 @@ import { toast } from 'sonner'
 
 export default function SessionPage() {
   const { sessionId } = useParams<{ sessionId: string }>()
-  const { session: authSession } = useAuth()
+  const { session: authSession, user } = useAuth()
+  const navigate = useNavigate()
   const [session, setSession] = useState<GroomingSession | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Redirect to sign in if not authenticated
+  useEffect(() => {
+    if (!user) {
+      navigate('/auth/signin')
+    }
+  }, [user, navigate])
 
   // Estimation state
   const [estimationState, setEstimationState] = useState<EstimationState>({
@@ -117,7 +125,7 @@ export default function SessionPage() {
 
     try {
       const userId = authSession.user.user_metadata?.internal_user_id || authSession.user.id
-      const userName = authSession.user.user_metadata?.full_name || authSession.user.email || 'Anonymous'
+      const userName = authSession.user.user_metadata?.full_name || authSession.user.email || 'User'
       const userEmail = authSession.user.email || 'no-email@example.com'
       
       // Update local state immediately
@@ -279,7 +287,7 @@ export default function SessionPage() {
 
     const userInfo = {
       user_id: authSession.user.user_metadata?.internal_user_id || authSession.user.id,
-      full_name: authSession.user.user_metadata?.full_name || authSession.user.email || 'Anonymous',
+      full_name: authSession.user.user_metadata?.full_name || authSession.user.email || 'User',
       email: authSession.user.email || 'no-email@example.com'
     }
 

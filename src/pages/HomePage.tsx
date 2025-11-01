@@ -15,7 +15,14 @@ export default function HomePage() {
   const [isLoadingSessions, setIsLoadingSessions] = useState(true)
   const [activeTab, setActiveTab] = useState<'join' | 'create'>('join')
   const navigate = useNavigate()
-  const { user, session, isAnonymous, isLoading } = useAuth()
+  const { user, session, isLoading } = useAuth()
+
+  // Redirect to sign in if not authenticated
+  useEffect(() => {
+    if (!isLoading && !user) {
+      navigate('/auth/signin')
+    }
+  }, [isLoading, user, navigate])
 
   // Fetch existing sessions on component mount
   useEffect(() => {
@@ -241,22 +248,6 @@ export default function HomePage() {
           ) : (
             /* Create Session Tab */
             <div className="max-w-md mx-auto space-y-6">
-              {isAnonymous && (
-                <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    <span className="text-blue-500 mt-0.5">💡</span>
-                    <div>
-                      <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
-                        Anonymous Mode
-                      </p>
-                      <p className="text-sm text-blue-600 dark:text-blue-400">
-                        Sessions created anonymously are temporary and won't be saved to your account.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               <form onSubmit={handleCreateSession} className="space-y-6">
                 <div>
                   <label htmlFor="sessionName" className="block text-sm font-medium mb-3">

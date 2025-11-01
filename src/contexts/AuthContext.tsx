@@ -8,11 +8,9 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   isLoading: boolean
-  isAnonymous: boolean
   signUp: (email: string, password: string, userData?: { full_name?: string }) => Promise<{ user: User | null; error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
-  useAnonymously: () => void
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -21,7 +19,6 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [isAnonymous, setIsAnonymous] = useState(false)
 
   useEffect(() => {
     // Get initial session
@@ -32,20 +29,8 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
         
         setSession(session)
         setUser(session?.user ?? null)
-        
-        // If user has a session, clear anonymous mode, otherwise enable it
-        if (session) {
-          setIsAnonymous(false)
-          localStorage.removeItem('sprintopia_anonymous_mode')
-        } else {
-          setIsAnonymous(true)
-          localStorage.setItem('sprintopia_anonymous_mode', 'true')
-        }
       } catch (error) {
         console.error('Error getting session:', error)
-        // Even if there's an error, enable anonymous mode as fallback
-        setIsAnonymous(true)
-        localStorage.setItem('sprintopia_anonymous_mode', 'true')
       } finally {
         setIsLoading(false)
       }
@@ -59,15 +44,6 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
         setIsLoading(false)
-        
-        // Manage anonymous mode based on session state
-        if (session) {
-          setIsAnonymous(false)
-          localStorage.removeItem('sprintopia_anonymous_mode')
-        } else {
-          setIsAnonymous(true)
-          localStorage.setItem('sprintopia_anonymous_mode', 'true')
-        }
       }
     )
 
@@ -145,31 +121,20 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
       
-      // Enable anonymous mode after sign out
-      setIsAnonymous(true)
-      localStorage.setItem('sprintopia_anonymous_mode', 'true')
-      
       return { error: null }
     } catch (error) {
       return { error: error as Error }
     }
   }
 
-  const useAnonymously = () => {
-    setIsAnonymous(true)
-    localStorage.setItem('sprintopia_anonymous_mode', 'true')
-  }
-
   const value = useMemo(() => ({
     user,
     session,
     isLoading,
-    isAnonymous,
     signUp,
     signIn,
-    signOut,
-    useAnonymously
-  }), [user, session, isLoading, isAnonymous])
+    signOut
+  }), [user, session, isLoading])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

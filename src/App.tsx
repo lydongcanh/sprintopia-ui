@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Toaster } from 'sonner'
 import HomePage from './pages/HomePage'
 import SessionPage from './pages/SessionPage'
@@ -11,8 +12,16 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/session/:sessionId" element={<SessionPage />} />
+          <Route path="/" element={
+            <ProtectedRoute>
+              <HomePage />
+            </ProtectedRoute>
+          } />
+          <Route path="/session/:sessionId" element={
+            <ProtectedRoute>
+              <SessionPage />
+            </ProtectedRoute>
+          } />
           <Route path="/auth/signin" element={<SignInPage />} />
           <Route path="/auth/signup" element={<SignUpPage />} />
         </Routes>
