@@ -28,8 +28,8 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
   const hasConsensus = values.length > 0 && (values.at(-1)! - values[0] <= 2)
 
   return (
-    <Card className="text-center bg-gradient-to-br from-blue-50 to-purple-50 border-2 border-blue-200">
-      <CardContent className="py-8 space-y-6">
+    <Card className="border">
+      <CardContent className="py-8 space-y-6 text-center">
         {estimations.length === 0 ? (
           <div className="space-y-4">
             <div className="text-4xl">🤔</div>
@@ -39,41 +39,35 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
           <>
             {/* Main Result */}
             <div className="space-y-4">
-              <div className="text-6xl">
-                {hasConsensus ? '🎯' : '🤝'}
-              </div>
-              
               {hasConsensus ? (
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-green-600">Great Consensus!</h3>
-                  <div className="flex items-center justify-center gap-2 text-3xl font-bold text-primary">
-                    <Target className="w-8 h-8" />
-                    {formatValue(Math.round(average))} points
+                <div className="space-y-3">
+                  <h3 className="text-xl font-semibold text-green-600">Great Consensus!</h3>
+                  <div className="flex items-center justify-center gap-2">
+                    <Target className="w-6 h-6 text-primary" />
+                    <span className="text-4xl font-bold text-primary">{formatValue(Math.round(average))}</span>
+                    <span className="text-lg text-muted-foreground">points</span>
                   </div>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-orange-600">Let's Discuss!</h3>
-                  <div className="flex items-center justify-center gap-2 text-lg text-muted-foreground">
+                <div className="space-y-3">
+                  <h3 className="text-xl font-semibold text-orange-600">Let's Discuss</h3>
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
                     <TrendingUp className="w-5 h-5" />
-                    Range: {formatValue(values[0])} - {formatValue(values.at(-1)!)} points
+                    <span className="text-lg">Range: {formatValue(values[0])} - {formatValue(values.at(-1)!)} points</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
-                    Different perspectives - time to align! 💬
-                  </p>
                 </div>
               )}
             </div>
 
             {/* Quick Stats */}
-            <div className="flex justify-center gap-8 text-sm">
+            <div className="flex justify-center gap-12 text-sm border-t pt-4">
               <div>
-                <p className="text-muted-foreground">Votes</p>
-                <p className="font-bold text-lg">{estimations.length}</p>
+                <p className="text-muted-foreground mb-1">Votes</p>
+                <p className="font-semibold text-xl">{estimations.length}</p>
               </div>
               <div>
-                <p className="text-muted-foreground">Average</p>
-                <p className="font-bold text-lg">{average.toFixed(1)}</p>
+                <p className="text-muted-foreground mb-1">Average</p>
+                <p className="font-semibold text-xl">{average.toFixed(1)}</p>
               </div>
             </div>
           </>
@@ -84,10 +78,10 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
           onClick={onStartNewTurn} 
           disabled={isStartingNewTurn}
           size="lg"
-          className="w-full h-12 text-lg"
+          className="w-full"
         >
-          <RotateCcw className="w-5 h-5 mr-2" />
-          {isStartingNewTurn ? 'Starting...' : '🚀 Start Next Round'}
+          <RotateCcw className="w-4 h-4 mr-2" />
+          {isStartingNewTurn ? 'Starting...' : 'Start Next Round'}
         </Button>
       </CardContent>
     </Card>

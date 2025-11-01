@@ -7,7 +7,6 @@ import { SimpleEstimationCard } from '@/components/SimpleEstimationCard'
 import { EstimationResults } from '@/components/EstimationResults'
 import { VotingStatus } from '@/components/VotingStatus'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { api, APIError } from "@/services/api"
 import { toast } from 'sonner'
 import type { GroomingSession } from "@/types/api"
@@ -435,32 +434,14 @@ export default function SessionPage() {
                   {/* Reveal Button - Separate row */}
                   {estimationState.estimations.length > 0 && (
                     <div className="flex justify-center">
-                      <Card className="bg-gradient-to-br from-orange-50 to-red-50 border-2 border-orange-200 shadow-lg">
-                        <CardContent className="flex items-center gap-6 p-6">
-                          <div className="text-5xl">📊</div>
-                          <div className="flex-1 min-w-[200px]">
-                            <p className="text-lg font-semibold text-gray-900 mb-2">
-                              {estimationState.estimations.length}/{getParticipants().length} Team Members Voted
-                            </p>
-                            <div className="w-full bg-gray-200 rounded-full h-3">
-                              <div 
-                                className="bg-gradient-to-r from-orange-400 to-red-500 h-3 rounded-full transition-all duration-500"
-                                style={{ 
-                                  width: `${(estimationState.estimations.length / Math.max(getParticipants().length, 1)) * 100}%` 
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <Button 
-                            onClick={handleEndEstimationTurn}
-                            disabled={isEndingTurn}
-                            size="lg"
-                            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 h-14 px-8 text-lg"
-                          >
-                            {isEndingTurn ? 'Revealing...' : '🎭 Reveal Results'}
-                          </Button>
-                        </CardContent>
-                      </Card>
+                      <Button 
+                        onClick={handleEndEstimationTurn}
+                        disabled={isEndingTurn}
+                        size="lg"
+                        className="bg-primary hover:bg-primary/90 h-12 px-8"
+                      >
+                        {isEndingTurn ? 'Revealing...' : 'Reveal Results'}
+                      </Button>
                     </div>
                   )}
                 </>
