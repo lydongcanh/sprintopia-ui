@@ -68,6 +68,14 @@ export function useRealtimeChannel(
     const channel = supabase.channel(channelName)
 
     // Set up event handlers
+    // Helper to reconcile presence and refresh participants
+    const reconcilePresence = () => {
+      const newPresenceState = channelRef.current?.presenceState() as PresenceState
+      if (!newPresenceState) return
+      setPresenceState(newPresenceState)
+      onPresenceUpdate?.(newPresenceState)
+    }
+
     channel
       .on("broadcast", { event: "*" }, (payload) => {
         const message: RealtimeMessage = {
@@ -80,19 +88,17 @@ export function useRealtimeChannel(
         onMessage?.(message)
       })
       .on("presence", { event: "sync" }, () => {
-        const newPresenceState = channel.presenceState() as PresenceState
-        setPresenceState(newPresenceState)
-        onPresenceUpdate?.(newPresenceState)
+        reconcilePresence()
       })
       .on("presence", { event: "join" }, () => {
-        const newPresenceState = channel.presenceState() as PresenceState
-        setPresenceState(newPresenceState)
-        onPresenceUpdate?.(newPresenceState)
+        reconcilePresence()
+        // Retry reconcile a few times in case join propagation is slow
+        for (const ms of [60, 150, 300]) {
+          setTimeout(() => reconcilePresence(), ms)
+        }
       })
       .on("presence", { event: "leave" }, () => {
-        const newPresenceState = channel.presenceState() as PresenceState
-        setPresenceState(newPresenceState)
-        onPresenceUpdate?.(newPresenceState)
+        reconcilePresence()
       })
       .subscribe((status) => {
         switch (status) {
@@ -175,11 +181,11 @@ export function useRealtimeChannel(
         setPresenceState(newPresenceState)
         onPresenceUpdate?.(newPresenceState)
 
-        // Flatten presences once and search
+        // Check if server now has our user
         let userFound = false
-        for (const presences of Object.values(newPresenceState)) {
-          for (const presence of presences) {
-            if (presence.user_id === userInfo.user_id) {
+        for (const arr of Object.values(newPresenceState)) {
+          for (const p of arr) {
+            if (p.user_id === userInfo.user_id) {
               userFound = true
               break
             }
