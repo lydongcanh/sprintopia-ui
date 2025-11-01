@@ -6,6 +6,7 @@ import { UserMenu } from '@/components/auth/UserMenu'
 import { SimpleEstimationCard } from '@/components/SimpleEstimationCard'
 import { EstimationResults } from '@/components/EstimationResults'
 import { VotingStatus } from '@/components/VotingStatus'
+import { ServerStatus } from '@/components/ServerStatus'
 import { Button } from '@/components/ui/button'
 import { api, APIError } from "@/services/api"
 import { toast } from 'sonner'
@@ -461,6 +462,8 @@ export default function SessionPage() {
           )}
         </div>
       </main>
+      
+      <ServerStatus />
     </div>
   )
 }
