@@ -45,6 +45,14 @@ export function useRealtimeChannel(
   const [connectionStatus, setConnectionStatus] = useState<"connecting" | "connected" | "disconnected">("disconnected")
   const [messages, setMessages] = useState<RealtimeMessage[]>([])
   const [presenceState, setPresenceState] = useState<PresenceState>({})
+  // Optimistic local participant (used before server presence sync arrives)
+  const [localParticipant, setLocalParticipant] = useState<null | {
+    user_id: string
+    full_name: string
+    email: string
+    joined_at: string
+    tab_id: string
+  }>(null)
   const channelRef = useRef<RealtimeChannel | null>(null)
   const { onMessage, onConnect, onDisconnect, onError, onPresenceUpdate } = options
 
@@ -76,14 +84,12 @@ export function useRealtimeChannel(
         setPresenceState(newPresenceState)
         onPresenceUpdate?.(newPresenceState)
       })
-      .on("presence", { event: "join" }, ({ key, newPresences }) => {
-        console.log("User joined:", key, newPresences)
+      .on("presence", { event: "join" }, () => {
         const newPresenceState = channel.presenceState() as PresenceState
         setPresenceState(newPresenceState)
         onPresenceUpdate?.(newPresenceState)
       })
-      .on("presence", { event: "leave" }, ({ key, leftPresences }) => {
-        console.log("User left:", key, leftPresences)
+      .on("presence", { event: "leave" }, () => {
         const newPresenceState = channel.presenceState() as PresenceState
         setPresenceState(newPresenceState)
         onPresenceUpdate?.(newPresenceState)
@@ -143,20 +149,49 @@ export function useRealtimeChannel(
     full_name: string
     email: string
   }) => {
-    if (channelRef.current && connectionStatus === "connected") {
-      const tabId = generateTabId()
-      const presenceData = {
-        ...userInfo,
-        joined_at: new Date().toISOString(),
-        tab_id: tabId
-      }
-      
-      // Use tab_id as the presence key to handle multiple tabs per user
-      channelRef.current.track(presenceData)
-      return true
+    if (!(channelRef.current && connectionStatus === "connected")) {
+      return false
     }
-    return false
-  }, [connectionStatus])
+
+    const tabId = generateTabId()
+    const presenceData = {
+      ...userInfo,
+      joined_at: new Date().toISOString(),
+      tab_id: tabId
+    }
+
+    // Optimistically add local participant so UI shows immediately
+    setLocalParticipant(presenceData)
+
+    channelRef.current.track(presenceData)
+
+    // Poll presenceState a few times to reconcile with server
+    const pollIntervals = [40, 120, 250, 500]
+    for (const ms of pollIntervals) {
+      setTimeout(() => {
+        const newPresenceState = channelRef.current?.presenceState() as PresenceState
+        if (!newPresenceState || Object.keys(newPresenceState).length === 0) return
+
+        setPresenceState(newPresenceState)
+        onPresenceUpdate?.(newPresenceState)
+
+        // Flatten presences once and search
+        let userFound = false
+        for (const presences of Object.values(newPresenceState)) {
+          for (const presence of presences) {
+            if (presence.user_id === userInfo.user_id) {
+              userFound = true
+              break
+            }
+          }
+          if (userFound) break
+        }
+        if (userFound) setLocalParticipant(null)
+      }, ms)
+    }
+
+    return true
+  }, [connectionStatus, onPresenceUpdate])
 
   const untrackPresence = useCallback(() => {
     if (channelRef.current) {
@@ -179,15 +214,12 @@ export function useRealtimeChannel(
     for (const presences of Object.values(presenceState)) {
       for (const presence of presences) {
         const existingParticipant = participantsMap.get(presence.user_id)
-        
         if (existingParticipant) {
-          // User already exists, increment tab count and use earliest join time
           existingParticipant.tab_count += 1
           if (presence.joined_at < existingParticipant.joined_at) {
             existingParticipant.joined_at = presence.joined_at
           }
         } else {
-          // New user, add to map
           participantsMap.set(presence.user_id, {
             user_id: presence.user_id,
             full_name: presence.full_name,
@@ -198,9 +230,34 @@ export function useRealtimeChannel(
         }
       }
     }
+
+    // If we have an optimistic localParticipant not yet in map, add it
+    if (localParticipant && !participantsMap.has(localParticipant.user_id)) {
+      participantsMap.set(localParticipant.user_id, {
+        user_id: localParticipant.user_id,
+        full_name: localParticipant.full_name,
+        email: localParticipant.email,
+        joined_at: localParticipant.joined_at,
+        tab_count: 1
+      })
+    }
     
-    return Array.from(participantsMap.values())
-  }, [presenceState])
+    return Array.from(participantsMap.values()).sort((a, b) => a.joined_at.localeCompare(b.joined_at))
+  }, [presenceState, localParticipant])
+
+  // Compute participants as state so components re-render when it changes
+  const [participants, setParticipants] = useState<{
+    user_id: string
+    full_name: string
+    email: string
+    joined_at: string
+    tab_count: number
+  }[]>([])
+
+  // Update participants whenever presenceState changes
+  useEffect(() => {
+    setParticipants(getParticipants())
+  }, [getParticipants])
 
   return {
     connectionStatus,
@@ -210,6 +267,7 @@ export function useRealtimeChannel(
     trackPresence,
     untrackPresence,
     getParticipants,
+    participants, // Add participants as state
     presenceState,
     isConnected: connectionStatus === "connected",
   }

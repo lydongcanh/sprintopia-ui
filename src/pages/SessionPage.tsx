@@ -100,7 +100,7 @@ export default function SessionPage() {
   }, [])
 
   // Real-time channel setup
-  const { connectionStatus, isConnected, trackPresence, untrackPresence, getParticipants, sendMessage } = useRealtimeChannel(
+  const { connectionStatus, isConnected, trackPresence, untrackPresence, participants, sendMessage } = useRealtimeChannel(
     channelName,
     {
       onMessage: handleMessage,
@@ -390,7 +390,7 @@ export default function SessionPage() {
             <div className="space-y-6">
               {/* Poker Table - Shows all participants and their voting status */}
               <VotingStatus 
-                participants={getParticipants()}
+                participants={participants}
                 estimations={estimationState.estimations}
                 isActive={estimationState.isActive}
                 showResults={estimationState.showResults}
