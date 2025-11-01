@@ -125,52 +125,6 @@ export const api = {
 
     return handleResponse<GroomingSession[]>(response);
   },
-
-  async startNewEstimationTurn(sessionId: string, accessToken?: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/grooming-sessions/${sessionId}/estimation-turns`, {
-      method: "POST",
-      headers: buildHeaders(accessToken),
-    });
-
-    if (!response.ok) {
-      throw new APIError(
-        `Failed to start estimation turn: ${response.status} ${response.statusText}`,
-        response.status
-      );
-    }
-  },
-
-  async submitEstimation(sessionId: string, userId: string, estimationValue: number, accessToken?: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/grooming-sessions/${sessionId}/estimations`, {
-      method: "POST",
-      headers: buildHeaders(accessToken),
-      body: JSON.stringify({
-        user_id: userId,
-        estimation_value: estimationValue
-      }),
-    });
-
-    if (!response.ok) {
-      throw new APIError(
-        `Failed to submit estimation: ${response.status} ${response.statusText}`,
-        response.status
-      );
-    }
-  },
-
-  async endEstimationTurn(sessionId: string, estimationTurnId: string, accessToken?: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/grooming-sessions/${sessionId}/estimation-turns/${estimationTurnId}/end`, {
-      method: "POST",
-      headers: buildHeaders(accessToken),
-    });
-
-    if (!response.ok) {
-      throw new APIError(
-        `Failed to end estimation turn: ${response.status} ${response.statusText}`,
-        response.status
-      );
-    }
-  },
 };
 
 export default api;
