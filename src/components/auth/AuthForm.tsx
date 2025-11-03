@@ -29,7 +29,7 @@ export function AuthForm({ mode, onSuccess }: AuthFormProps) {
         
         // Show success toast and navigate to dashboard
         toast.success("Account created successfully! 📧", {
-          description: `We've sent a confirmation link to ${email}. Please check your email and click the link to verify your account before signing in.`,
+          description: `We've sent a confirmation link to ${email}. Please check your email and click the link to verify your account.`,
           duration: 8000,
         })
         
