@@ -10,6 +10,7 @@ interface AuthContextType {
   isLoading: boolean
   signUp: (email: string, password: string, userData?: { full_name?: string }) => Promise<{ user: User | null; error: Error | null }>
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: Error | null }>
+  signInWithGitHub: () => Promise<{ error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
 }
 
@@ -40,10 +41,41 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session)
         setUser(session?.user ?? null)
         setIsLoading(false)
+        
+        // Handle OAuth sign-in (GitHub, etc.)
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if this is an OAuth user and if they need to be created in backend
+          const user = session.user
+          
+          // If user doesn't have internal_user_id, create them in backend
+          if (!user.user_metadata?.internal_user_id && user.email) {
+            try {
+              const accessToken = session.access_token
+              
+              // Create user in backend
+              const backendUser = await api.createUser({
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.user_metadata?.name || user.email.split('@')[0],
+                external_auth_id: user.id
+              }, accessToken)
+              
+              // Update Supabase user metadata with internal user ID
+              await supabase.auth.updateUser({
+                data: {
+                  internal_user_id: backendUser.id,
+                  full_name: user.user_metadata?.full_name || user.user_metadata?.name
+                }
+              })
+            } catch (backendError) {
+              console.error('Error creating OAuth user in backend:', backendError)
+              // Don't throw here as the Supabase user creation was successful
+            }
+          }
+        }
       }
     )
 
@@ -116,6 +148,23 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     }
   }
 
+  const signInWithGitHub = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: `${globalThis.location.origin}/`
+        }
+      })
+      
+      if (error) throw error
+      
+      return { error: null }
+    } catch (error) {
+      return { error: error as Error }
+    }
+  }
+
   const signOut = async () => {
     try {
       const { error } = await supabase.auth.signOut()
@@ -133,6 +182,7 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
     isLoading,
     signUp,
     signIn,
+    signInWithGitHub,
     signOut
   }), [user, session, isLoading])
 
