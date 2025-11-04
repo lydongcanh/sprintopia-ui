@@ -69,8 +69,32 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
     }
   }, [hasConsensus, estimations.length])
 
+  // Trigger discussion effect when no consensus
+  useEffect(() => {
+    if (!hasConsensus && estimations.length > 0 && values.length > 0) {
+      // Create a subtle "thinking" shake effect on the card
+      const card = document.querySelector('.estimation-results-card')
+      if (card) {
+        card.classList.add('shake-animation')
+        setTimeout(() => {
+          card.classList.remove('shake-animation')
+        }, 500)
+      }
+    }
+  }, [hasConsensus, estimations.length, values.length])
+
   return (
-    <Card className="border">
+    <Card className="border estimation-results-card">
+      <style>{`
+        .shake-animation {
+          animation: shake 0.5s;
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+          20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+      `}</style>
       <CardContent className="py-8 space-y-6 text-center">
         {estimations.length === 0 ? (
           <div className="space-y-4">
@@ -97,11 +121,26 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
                   </p>
                 </div>
               ) : (
-                  <div className="space-y-3">
-                  <h3 className="text-xl font-semibold text-orange-600">Let's Discuss</h3>
-                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <TrendingUp className="w-5 h-5" />
-                    <span className="text-lg">Range: {formatValue(values[0])} - {formatValue(values.at(-1))} points</span>
+                <div className="space-y-3 animate-in fade-in zoom-in duration-500">
+                  <div className="text-5xl animate-pulse">💭</div>
+                  <h3 className="text-2xl font-bold text-orange-600 animate-in slide-in-from-bottom duration-300">
+                    Let's Discuss!
+                  </h3>
+                  <div className="bg-orange-50 dark:bg-orange-950 rounded-xl p-6 border-2 border-orange-200 dark:border-orange-800 space-y-3">
+                    <div className="flex items-center justify-center gap-3">
+                      <TrendingUp className="w-6 h-6 text-orange-600" />
+                      <div className="text-center">
+                        <p className="text-sm text-orange-700 dark:text-orange-400 font-semibold mb-1">
+                          Estimate Range
+                        </p>
+                        <p className="text-3xl font-bold text-orange-600">
+                          {formatValue(values[0])} - {formatValue(values.at(-1))}
+                        </p>
+                        <p className="text-sm text-orange-600 font-medium mt-1">
+                          {values.at(-1)! - values[0]} point difference
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
