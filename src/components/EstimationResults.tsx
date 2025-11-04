@@ -3,6 +3,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { RotateCcw, Target, TrendingUp } from 'lucide-react'
 import { CONSENSUS_THRESHOLD } from '@/constants/estimation'
 import type { Estimation } from '@/types/session'
+import { useEffect } from 'react'
+import confetti from 'canvas-confetti'
 
 interface EstimationResultsProps {
   readonly estimations: Estimation[]
@@ -27,6 +29,46 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
   // Check for consensus (all values within threshold)
   const hasConsensus = values.length > 0 && (values.at(-1)! - values[0] <= CONSENSUS_THRESHOLD)
 
+  // Trigger celebration effect when consensus is reached
+  useEffect(() => {
+    if (hasConsensus && estimations.length > 0) {
+      // Fire confetti from multiple angles for a more dramatic effect
+      const duration = 3000
+      const animationEnd = Date.now() + duration
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 }
+
+      function randomInRange(min: number, max: number) {
+        return Math.random() * (max - min) + min
+      }
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now()
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval)
+        }
+
+        const particleCount = 50 * (timeLeft / duration)
+
+        // Fire from left side
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 }
+        })
+        
+        // Fire from right side
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 }
+        })
+      }, 250)
+
+      return () => clearInterval(interval)
+    }
+  }, [hasConsensus, estimations.length])
+
   return (
     <Card className="border">
       <CardContent className="py-8 space-y-6 text-center">
@@ -40,13 +82,19 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
             {/* Main Result */}
             <div className="space-y-4">
               {hasConsensus ? (
-                <div className="space-y-3">
-                  <h3 className="text-xl font-semibold text-green-600">Great Consensus!</h3>
-                  <div className="flex items-center justify-center gap-2">
-                    <Target className="w-6 h-6 text-primary" />
-                    <span className="text-4xl font-bold text-primary">{formatValue(Math.round(average))}</span>
-                    <span className="text-lg text-muted-foreground">points</span>
+                <div className="space-y-3 animate-in fade-in zoom-in duration-500">
+                  <div className="text-5xl animate-bounce">🎉</div>
+                  <h3 className="text-2xl font-bold text-green-600 animate-in slide-in-from-bottom duration-300">
+                    Great Consensus!
+                  </h3>
+                  <div className="flex items-center justify-center gap-2 bg-green-50 dark:bg-green-950 rounded-xl p-6 border-2 border-green-200 dark:border-green-800">
+                    <Target className="w-6 h-6 text-green-600" />
+                    <span className="text-5xl font-bold text-green-600">{formatValue(Math.round(average))}</span>
+                    <span className="text-xl text-green-600 font-semibold">points</span>
                   </div>
+                  <p className="text-sm text-muted-foreground">
+                    Everyone agrees! The team is aligned 🎯
+                  </p>
                 </div>
               ) : (
                   <div className="space-y-3">
