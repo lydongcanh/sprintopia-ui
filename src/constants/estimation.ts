@@ -13,4 +13,4 @@ export const STORY_POINTS = [
   { value: 21, label: '21' },
 ] as const
 
-export const CONSENSUS_THRESHOLD = 2 // points difference for consensus
+export const CONSENSUS_THRESHOLD = 1 // points difference for consensus
