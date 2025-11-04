@@ -2,12 +2,19 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { ProtectedRoute } from '@/components/ProtectedRoute'
 import { Toaster } from 'sonner'
+import { useEffect } from 'react'
+import { initializeNewRelic } from '@/lib/newrelic'
 import HomePage from './pages/HomePage'
 import SessionPage from './pages/SessionPage'
 import SignInPage from './pages/SignInPage'
 import SignUpPage from './pages/SignUpPage'
 
 function App() {
+  // Initialize New Relic on app startup
+  useEffect(() => {
+    initializeNewRelic()
+  }, [])
+
   return (
     <AuthProvider>
       <Router>
