@@ -30,9 +30,17 @@ export function UserMenu() {
         onClick={() => setIsMenuOpen(!isMenuOpen)}
         className="flex items-center gap-2 p-2 rounded-md hover:bg-muted"
       >
-        <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
-          {user.user_metadata?.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
-        </div>
+        {user.user_metadata?.avatar_url ? (
+          <img 
+            src={user.user_metadata.avatar_url} 
+            alt={user.user_metadata?.full_name || user.email || 'User'} 
+            className="w-8 h-8 rounded-full object-cover"
+          />
+        ) : (
+          <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+            {user.user_metadata?.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
+          </div>
+        )}
         <span className="text-sm font-medium">
           {user.user_metadata?.full_name || user.email}
         </span>
