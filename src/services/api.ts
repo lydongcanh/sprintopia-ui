@@ -125,6 +125,34 @@ export const api = {
 
     return handleResponse<GroomingSession[]>(response);
   },
+
+  async renameGroomingSession(
+    sessionId: string, 
+    newName: string, 
+    accessToken?: string
+  ): Promise<void> {
+    const response = await fetch(`${API_BASE_URL}/grooming-sessions/${sessionId}`, {
+      method: "PATCH",
+      headers: buildHeaders(accessToken),
+      body: JSON.stringify({ new_name: newName }),
+    });
+
+    if (!response.ok) {
+      const contentType = response.headers.get("content-type");
+      if (contentType?.includes("application/json")) {
+        const errorData = await response.json();
+        throw new APIError(
+          `Failed to rename session: ${response.status} ${response.statusText}`,
+          response.status,
+          errorData
+        );
+      }
+      throw new APIError(
+        `Failed to rename session: ${response.status} ${response.statusText}`,
+        response.status
+      );
+    }
+  },
 };
 
 export default api;

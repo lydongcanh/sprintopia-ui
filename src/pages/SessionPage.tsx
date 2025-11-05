@@ -10,6 +10,7 @@ import { EstimationResults } from '@/components/EstimationResults'
 import { VotingStatus } from '@/components/VotingStatus'
 import { ServerStatus } from '@/components/ServerStatus'
 import { Button } from '@/components/ui/button'
+import { InlineEdit } from '@/components/ui/inline-edit'
 import { api, APIError } from "@/services/api"
 import { toast } from 'sonner'
 
@@ -251,6 +252,29 @@ export default function SessionPage() {
     }
   }
 
+  const handleRenameSession = async (newName: string) => {
+    if (!sessionId || !session) return
+
+    try {
+      await api.renameGroomingSession(sessionId, newName, authSession?.access_token)
+      
+      // Update local state
+      setSession({ ...session, name: newName })
+      
+      toast.success("Session renamed", {
+        description: `Session name updated to "${newName}"`,
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error('Failed to rename session:', error)
+      toast.error("Failed to rename session", {
+        description: error instanceof APIError ? error.message : "Please try again.",
+        duration: 4000,
+      })
+      throw error // Re-throw to let InlineEdit handle the error state
+    }
+  }
+
   useEffect(() => {
     if (!sessionId) return
 
@@ -367,7 +391,12 @@ export default function SessionPage() {
                 <Link to="/" className="text-primary hover:underline">
                   ← Back to Home
                 </Link>
-                <h1 className="text-2xl font-bold text-primary">{session.name}</h1>
+                <InlineEdit
+                  value={session.name}
+                  onSave={handleRenameSession}
+                  displayClassName="text-2xl font-bold text-primary"
+                  showEditIcon={true}
+                />
               </div>
             </div>
             <div className="flex items-center gap-4">

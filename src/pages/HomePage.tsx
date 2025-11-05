@@ -1,6 +1,7 @@
-import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { Button } from "@/components/ui/button"
+import { InlineEdit } from "@/components/ui/inline-edit"
 import { useAuth } from '@/hooks/useAuth'
 import { UserMenu } from '@/components/auth/UserMenu'
 import { ServerStatus } from '@/components/ServerStatus'
@@ -60,6 +61,29 @@ export default function HomePage() {
 
   const handleJoinSession = (sessionId: string) => {
     navigate(`/session/${sessionId}`)
+  }
+
+  const handleRenameSession = async (sessionId: string, newName: string) => {
+    try {
+      await api.renameGroomingSession(sessionId, newName, session?.access_token)
+      
+      // Update local state
+      setExistingSessions(prev => 
+        prev.map(s => s.id === sessionId ? { ...s, name: newName } : s)
+      )
+      
+      toast.success("Session renamed", {
+        description: `Session name updated to "${newName}"`,
+        duration: 3000,
+      })
+    } catch (error) {
+      console.error('Failed to rename session:', error)
+      toast.error("Failed to rename session", {
+        description: error instanceof APIError ? error.message : "Please try again.",
+        duration: 4000,
+      })
+      throw error // Re-throw to let InlineEdit handle the error state
+    }
   }
 
   const handleCreateSession = async (e: React.FormEvent) => {
@@ -221,24 +245,33 @@ export default function HomePage() {
                     </div>
                   ) : (
                     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                      {existingSessions.map((session) => (
-                        <button
-                          key={session.id}
-                          className="border border-border rounded-lg p-6 hover:border-primary/50 hover:shadow-md transition-all duration-200 text-left group"
-                          onClick={() => handleJoinSession(session.id)}
+                      {existingSessions.map((sessionItem) => (
+                        <div
+                          key={sessionItem.id}
+                          className="border border-border rounded-lg p-6 hover:border-primary/50 hover:shadow-md transition-all duration-200 group"
                         >
                           <div className="flex items-start justify-between mb-3">
-                            <h3 className="font-semibold text-lg truncate pr-2">{session.name}</h3>
+                            <InlineEdit
+                              value={sessionItem.name}
+                              onSave={(newName) => handleRenameSession(sessionItem.id, newName)}
+                              displayClassName="font-semibold text-lg truncate pr-2"
+                              className="flex-1 min-w-0"
+                              showEditIcon={true}
+                            />
                             <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
                           </div>
                           <p className="text-sm text-muted-foreground mb-4">
-                            Created {formatDate(session.created_at)}
+                            Created {formatDate(sessionItem.created_at)}
                           </p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-muted-foreground">Click to join</span>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-between text-xs text-muted-foreground hover:text-foreground"
+                            onClick={() => handleJoinSession(sessionItem.id)}
+                          >
+                            <span>Click to join</span>
                             <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
-                          </div>
-                        </button>
+                          </Button>
+                        </div>
                       ))}
                     </div>
                   )}
