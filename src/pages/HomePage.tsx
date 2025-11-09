@@ -168,34 +168,36 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b">
+      <header className="border-b-0 neu-elevated-sm">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-primary">Sprintopia</h1>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                Sprintopia
+              </h1>
             </div>
             <UserMenu />
           </div>
         </div>
       </header>
-      <main className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <main className="container mx-auto px-4 py-12">
+        <div className="max-w-5xl mx-auto space-y-8">
           {/* Header */}
-          <div className="text-center">
-            <h2 className="text-3xl font-bold mb-2">Planning Poker Sessions</h2>
-            <p className="text-muted-foreground">
+          <div className="text-center space-y-3">
+            <h2 className="text-4xl font-bold">Planning Poker Sessions</h2>
+            <p className="text-muted-foreground text-lg">
               Join an existing session or create a new one for your team
             </p>
           </div>
 
           {/* Tab Navigation */}
           <div className="flex justify-center">
-            <div className="bg-muted p-1 rounded-lg">
+            <div className="bg-background neu-pressed-sm p-2 rounded-2xl">
               <button
                 onClick={() => setActiveTab('join')}
-                className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                className={`px-8 py-3 rounded-xl font-medium transition-all duration-200 ${
                   activeTab === 'join'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background neu-elevated text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -203,9 +205,9 @@ export default function HomePage() {
               </button>
               <button
                 onClick={() => setActiveTab('create')}
-                className={`px-6 py-2 rounded-md font-medium transition-colors ${
+                className={`px-8 py-3 rounded-xl font-medium transition-all duration-200 ${
                   activeTab === 'create'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background neu-elevated text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -226,31 +228,32 @@ export default function HomePage() {
               ) : (
                 <>
                   {existingSessions.length === 0 ? (
-                    <div className="text-center py-12 bg-muted/50 rounded-lg">
-                      <div className="mb-4">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-                          <span className="text-2xl">🎯</span>
+                    <div className="text-center py-16 neu-pressed rounded-3xl">
+                      <div className="mb-6">
+                        <div className="w-24 h-24 mx-auto mb-6 rounded-full neu-elevated flex items-center justify-center">
+                          <span className="text-5xl">🎯</span>
                         </div>
-                        <h3 className="text-lg font-semibold mb-2">No active sessions</h3>
-                        <p className="text-muted-foreground mb-4">
+                        <h3 className="text-2xl font-semibold mb-3">No active sessions</h3>
+                        <p className="text-muted-foreground mb-6 text-lg">
                           Be the first to create a planning poker session for your team!
                         </p>
                         <Button 
                           onClick={() => setActiveTab('create')}
                           variant="outline"
+                          size="lg"
                         >
                           Create First Session
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                       {existingSessions.map((sessionItem) => (
                         <div
                           key={sessionItem.id}
-                          className="border border-border rounded-lg p-6 hover:border-primary/50 hover:shadow-md transition-all duration-200 group"
+                          className="neu-elevated rounded-3xl p-6 hover:neu-elevated-lg transition-all duration-300 group bg-background"
                         >
-                          <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start justify-between mb-4">
                             <InlineEdit
                               value={sessionItem.name}
                               onSave={(newName) => handleRenameSession(sessionItem.id, newName)}
@@ -258,18 +261,18 @@ export default function HomePage() {
                               className="flex-1 min-w-0"
                               showEditIcon={true}
                             />
-                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
+                            <div className="w-3 h-3 bg-green-400 rounded-full flex-shrink-0 mt-2 neu-elevated-sm"></div>
                           </div>
-                          <p className="text-sm text-muted-foreground mb-4">
+                          <p className="text-sm text-muted-foreground mb-6">
                             Created {formatDate(sessionItem.created_at)}
                           </p>
                           <Button
                             variant="ghost"
-                            className="w-full justify-between text-xs text-muted-foreground hover:text-foreground"
+                            className="w-full justify-between text-sm hover:bg-transparent"
                             onClick={() => handleJoinSession(sessionItem.id)}
                           >
                             <span>Click to join</span>
-                            <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
+                            <span className="text-primary group-hover:translate-x-2 transition-transform">→</span>
                           </Button>
                         </div>
                       ))}
@@ -291,7 +294,8 @@ export default function HomePage() {
                     type="text"
                     value={sessionName}
                     onChange={(e) => setSessionName(e.target.value)}
-                    className="w-full px-4 py-3 border border-input bg-background rounded-lg focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+                    className="w-full px-6 py-4 bg-background rounded-2xl neu-pressed focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                    placeholder="e.g., Sprint 23 Planning"
                     disabled={isCreating}
                     required
                   />
@@ -299,7 +303,8 @@ export default function HomePage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full py-3" 
+                  className="w-full py-4" 
+                  size="lg"
                   disabled={isCreating || !sessionName.trim()}
                 >
                   {isCreating ? "Creating Session..." : "Create & Start Session"}

@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge'
 import { CheckCircle2, Clock, Eye } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { Participant, Estimation } from '@/types/session'
@@ -24,10 +23,10 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
 
   if (!isActive && estimations.length === 0) {
     return (
-      <div className="bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200 rounded-2xl p-12 text-center shadow-lg">
-        <div className="text-6xl mb-4">🃏</div>
-        <h3 className="text-lg font-semibold text-slate-600 mb-2">No Active Estimation</h3>
-        <p className="text-slate-500">
+      <div className="neu-pressed rounded-3xl p-16 text-center">
+        <div className="text-7xl mb-6">🃏</div>
+        <h3 className="text-2xl font-semibold text-muted-foreground mb-3">No Active Estimation</h3>
+        <p className="text-muted-foreground text-lg">
           Waiting for an estimation turn to begin...
         </p>
       </div>
@@ -39,32 +38,34 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
   const votingProgress = totalCount > 0 ? (votedCount / totalCount) * 100 : 0
 
   return (
-    <div className="bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 rounded-2xl p-6">
+    <div className="rounded-3xl p-8 bg-gradient-to-br from-blue-50/50 to-purple-50/50">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-green-800">
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="flex items-center gap-3 text-2xl font-bold">
             {isActive ? (
               <>
-                <Clock className="h-5 w-5 animate-pulse" />
+                <Clock className="h-6 w-6 animate-pulse text-primary" />
                 Voting in Progress
               </>
             ) : (
               <>
-                <Eye className="h-5 w-5" />
+                <Eye className="h-6 w-6 text-primary" />
                 Results Revealed
               </>
             )}
           </h2>
-          <Badge variant={isActive ? "default" : "secondary"} className="bg-green-100 text-green-800">
-            {votedCount}/{totalCount} voted
-          </Badge>
+          <div className="px-5 py-2 rounded-xl neu-elevated bg-background">
+            <span className="font-bold text-lg">
+              {votedCount}/{totalCount} voted
+            </span>
+          </div>
         </div>
         
         {/* Progress Bar */}
-        <div className="w-full bg-green-100 rounded-full h-2">
+        <div className="w-full bg-muted rounded-full h-3 neu-pressed-sm overflow-hidden">
           <motion.div
-            className="bg-gradient-to-r from-green-500 to-emerald-500 h-2 rounded-full"
+            className="bg-gradient-to-r from-primary to-accent h-3 rounded-full"
             initial={{ width: 0 }}
             animate={{ width: `${votingProgress}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
@@ -73,7 +74,7 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
       </div>
       
       {/* Poker Cards Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
           <AnimatePresence>
             {participants.map((participant) => {
               const status = getVotingStatus(participant)
@@ -86,9 +87,9 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                   exit={{ scale: 0.8, opacity: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <div className="flex flex-col items-center space-y-3">
+                  <div className="flex flex-col items-center space-y-4">
                     {/* Card Value or Status */}
-                    <div className="flex items-center justify-center min-h-[80px]">
+                    <div className="flex items-center justify-center min-h-[100px]">
                         {(() => {
                           if (status.showValue) {
                             return (
@@ -98,8 +99,8 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                                 transition={{ duration: 0.6, type: "spring" }}
                                 className="w-full"
                               >
-                                <div className="w-24 h-32 bg-gradient-to-br from-green-400 to-emerald-500 rounded-lg shadow-xl flex items-center justify-center border-4 border-white">
-                                  <span className="text-6xl font-bold text-white">
+                                <div className="w-28 h-40 bg-gradient-to-br from-primary to-accent rounded-2xl neu-elevated-lg flex items-center justify-center">
+                                  <span className="text-7xl font-bold text-white">
                                     {(() => {
                                       if (status.estimation === -1) return '?';
                                       if (status.estimation === 0.5) return '½';
@@ -120,12 +121,12 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                                 className="relative"
                               >
                                 {/* Card Back - Voted */}
-                                <div className="w-24 h-32 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg shadow-xl flex items-center justify-center border-4 border-white">
-                                  <div className="text-5xl">🃏</div>
+                                <div className="w-28 h-40 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl neu-elevated-lg flex items-center justify-center">
+                                  <div className="text-6xl">🃏</div>
                                 </div>
                                 {/* Checkmark */}
-                                <div className="absolute -top-2 -right-2 bg-green-500 rounded-full p-1.5 shadow-lg">
-                                  <CheckCircle2 className="h-4 w-4 text-white" />
+                                <div className="absolute -top-3 -right-3 bg-green-500 rounded-full p-2 neu-elevated-sm">
+                                  <CheckCircle2 className="h-5 w-5 text-white" />
                                 </div>
                               </motion.div>
                             )
@@ -144,8 +145,8 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                               }}
                             >
                               {/* Waiting Card */}
-                              <div className="w-24 h-32 bg-gradient-to-br from-gray-300 to-gray-400 rounded-lg shadow-md flex items-center justify-center border-4 border-dashed border-gray-500">
-                                <Clock className="h-10 w-10 text-gray-600" />
+                              <div className="w-28 h-40 bg-muted rounded-2xl neu-pressed flex items-center justify-center border-4 border-dashed border-muted-foreground/30">
+                                <Clock className="h-12 w-12 text-muted-foreground" />
                               </div>
                             </motion.div>
                           )
@@ -154,7 +155,7 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                       
                       {/* Player Name */}
                       <div className="text-center w-full">
-                        <div className="text-xs font-semibold text-gray-900 truncate px-1">
+                        <div className="text-sm font-semibold truncate px-2 py-1 rounded-lg neu-elevated-sm bg-background">
                           {participant.full_name}
                         </div>
                       </div>
@@ -162,7 +163,7 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                     
                     {/* Tab Count Indicator */}
                     {participant.tab_count > 1 && (
-                      <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg">
+                      <div className="absolute top-2 right-2 bg-orange-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold neu-elevated-sm">
                         {participant.tab_count}
                       </div>
                     )}

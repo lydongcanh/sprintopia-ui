@@ -1,5 +1,4 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { RotateCcw, Target, TrendingUp } from 'lucide-react'
 import { CONSENSUS_THRESHOLD } from '@/constants/estimation'
 import type { Estimation } from '@/types/session'
@@ -84,7 +83,7 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
   }, [hasConsensus, estimations.length, values.length])
 
   return (
-    <Card className="border estimation-results-card">
+    <div className="border-0 estimation-results-card neu-elevated rounded-3xl p-8">
       <style>{`
         .shake-animation {
           animation: shake 0.5s;
@@ -95,48 +94,48 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
           20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
       `}</style>
-      <CardContent className="py-8 space-y-6 text-center">
+      <div className="space-y-8 text-center">
         {estimations.length === 0 ? (
-          <div className="space-y-4">
-            <div className="text-4xl">🤔</div>
-            <p className="text-muted-foreground">No votes submitted</p>
+          <div className="space-y-6 py-8">
+            <div className="text-6xl">🤔</div>
+            <p className="text-muted-foreground text-xl">No votes submitted</p>
           </div>
         ) : (
           <>
             {/* Main Result */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {hasConsensus ? (
-                <div className="space-y-3 animate-in fade-in zoom-in duration-500">
-                  <div className="text-5xl animate-bounce">🎉</div>
-                  <h3 className="text-2xl font-bold text-green-600 animate-in slide-in-from-bottom duration-300">
+                <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+                  <div className="text-7xl animate-bounce">🎉</div>
+                  <h3 className="text-3xl font-bold text-green-600 animate-in slide-in-from-bottom duration-300">
                     Great Consensus!
                   </h3>
-                  <div className="flex items-center justify-center gap-2 bg-green-50 dark:bg-green-950 rounded-xl p-6 border-2 border-green-200 dark:border-green-800">
-                    <Target className="w-6 h-6 text-green-600" />
-                    <span className="text-5xl font-bold text-green-600">{formatValue(Math.round(average))}</span>
-                    <span className="text-xl text-green-600 font-semibold">points</span>
+                  <div className="flex items-center justify-center gap-3 bg-green-50 rounded-2xl p-8 neu-elevated">
+                    <Target className="w-8 h-8 text-green-600" />
+                    <span className="text-7xl font-bold text-green-600">{formatValue(Math.round(average))}</span>
+                    <span className="text-2xl text-green-600 font-semibold">points</span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-lg text-muted-foreground">
                     Everyone agrees! The team is aligned 🎯
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3 animate-in fade-in zoom-in duration-500">
-                  <div className="text-5xl animate-pulse">💭</div>
-                  <h3 className="text-2xl font-bold text-orange-600 animate-in slide-in-from-bottom duration-300">
+                <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+                  <div className="text-7xl animate-pulse">💭</div>
+                  <h3 className="text-3xl font-bold text-orange-600 animate-in slide-in-from-bottom duration-300">
                     Let's Discuss!
                   </h3>
-                  <div className="bg-orange-50 dark:bg-orange-950 rounded-xl p-6 border-2 border-orange-200 dark:border-orange-800 space-y-3">
-                    <div className="flex items-center justify-center gap-3">
-                      <TrendingUp className="w-6 h-6 text-orange-600" />
+                  <div className="bg-orange-50 rounded-2xl p-8 neu-elevated space-y-4">
+                    <div className="flex items-center justify-center gap-4">
+                      <TrendingUp className="w-8 h-8 text-orange-600" />
                       <div className="text-center">
-                        <p className="text-sm text-orange-700 dark:text-orange-400 font-semibold mb-1">
+                        <p className="text-sm text-orange-700 font-semibold mb-2">
                           Estimate Range
                         </p>
-                        <p className="text-3xl font-bold text-orange-600">
+                        <p className="text-5xl font-bold text-orange-600">
                           {formatValue(values[0])} - {formatValue(values.at(-1))}
                         </p>
-                        <p className="text-sm text-orange-600 font-medium mt-1">
+                        <p className="text-lg text-orange-600 font-medium mt-2">
                           {values.at(-1)! - values[0]} point difference
                         </p>
                       </div>
@@ -147,14 +146,14 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
             </div>
 
             {/* Quick Stats */}
-            <div className="flex justify-center gap-12 text-sm border-t pt-4">
-              <div>
-                <p className="text-muted-foreground mb-1">Votes</p>
-                <p className="font-semibold text-xl">{estimations.length}</p>
+            <div className="flex justify-center gap-16 text-sm border-t pt-6">
+              <div className="text-center">
+                <p className="text-muted-foreground mb-2 text-sm">Votes</p>
+                <p className="font-bold text-3xl">{estimations.length}</p>
               </div>
-              <div>
-                <p className="text-muted-foreground mb-1">Average</p>
-                <p className="font-semibold text-xl">{average.toFixed(1)}</p>
+              <div className="text-center">
+                <p className="text-muted-foreground mb-2 text-sm">Average</p>
+                <p className="font-bold text-3xl">{average.toFixed(1)}</p>
               </div>
             </div>
           </>
@@ -165,12 +164,12 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
           onClick={onStartNewTurn} 
           disabled={isStartingNewTurn}
           size="lg"
-          className="w-full"
+          className="w-full text-lg"
         >
-          <RotateCcw className="w-4 h-4 mr-2" />
+          <RotateCcw className="w-5 h-5 mr-2" />
           {isStartingNewTurn ? 'Starting...' : 'Start Next Round'}
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

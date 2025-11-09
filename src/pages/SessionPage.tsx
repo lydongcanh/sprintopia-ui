@@ -383,26 +383,26 @@ export default function SessionPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header className="border-b">
+      <header className="border-b-0 neu-elevated-sm">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-4">
-                <Link to="/" className="text-primary hover:underline">
+                <Link to="/" className="text-primary hover:underline font-medium">
                   ← Back to Home
                 </Link>
                 <InlineEdit
                   value={session.name}
                   onSave={handleRenameSession}
-                  displayClassName="text-2xl font-bold text-primary"
+                  displayClassName="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"
                   showEditIcon={true}
                 />
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl neu-pressed-sm">
                 <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
-                <span className="text-sm text-muted-foreground capitalize">
+                <span className="text-sm font-medium capitalize">
                   {connectionStatus}
                 </span>
               </div>
@@ -412,31 +412,33 @@ export default function SessionPage() {
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="space-y-6">
+      <main className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="space-y-8">
           {/* Loading state while auto-starting */}
           {!estimationState.isActive && !estimationState.showResults && hasAutoStarted && (
-            <div className="text-center py-20">
-              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-primary mx-auto mb-6"></div>
-              <p className="text-xl text-muted-foreground">Starting estimation round...</p>
+            <div className="text-center py-24 neu-elevated rounded-3xl">
+              <div className="animate-spin rounded-full h-20 w-20 border-b-4 border-primary mx-auto mb-8 neu-elevated"></div>
+              <p className="text-2xl font-semibold text-muted-foreground">Starting estimation round...</p>
             </div>
           )}
 
           {/* Active Estimation - Show poker table and voting */}
           {(estimationState.isActive || estimationState.showResults) && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               {/* Poker Table - Shows all participants and their voting status */}
-              <VotingStatus 
-                participants={participants}
-                estimations={estimationState.estimations}
-                isActive={estimationState.isActive}
-                showResults={estimationState.showResults}
-              />
+              <div className="neu-elevated rounded-3xl p-6">
+                <VotingStatus 
+                  participants={participants}
+                  estimations={estimationState.estimations}
+                  isActive={estimationState.isActive}
+                  showResults={estimationState.showResults}
+                />
+              </div>
 
               {/* Voting Interface - Show when round is active */}
               {estimationState.isActive && !estimationState.showResults && (
                 <>
-                  <div className="w-full">
+                  <div className="w-full neu-elevated rounded-3xl p-8">
                     <SimpleEstimationCard
                       onSubmitEstimation={handleEstimationSubmit}
                       currentEstimation={estimationState.userHasSubmitted ? 
@@ -455,7 +457,7 @@ export default function SessionPage() {
                         onClick={handleEndEstimationTurn}
                         disabled={isEndingTurn}
                         size="lg"
-                        className="bg-primary hover:bg-primary/90 h-12 px-8"
+                        className="h-14 px-12 text-lg"
                       >
                         {isEndingTurn ? 'Revealing...' : 'Reveal Results'}
                       </Button>

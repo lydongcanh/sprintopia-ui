@@ -28,33 +28,33 @@ export function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setIsMenuOpen(!isMenuOpen)}
-        className="flex items-center gap-2 p-2 rounded-md hover:bg-muted"
+        className="flex items-center gap-3 p-3 rounded-2xl hover:opacity-80 transition-opacity neu-elevated"
       >
         {user.user_metadata?.avatar_url ? (
           <img 
             src={user.user_metadata.avatar_url} 
             alt={user.user_metadata?.full_name || user.email || 'User'} 
-            className="w-8 h-8 rounded-full object-cover"
+            className="w-10 h-10 rounded-full object-cover neu-elevated-sm"
           />
         ) : (
-          <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-medium">
+          <div className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-semibold neu-elevated-sm">
             {user.user_metadata?.full_name?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
           </div>
         )}
-        <span className="text-sm font-medium">
+        <span className="text-sm font-semibold">
           {user.user_metadata?.full_name || user.email}
         </span>
       </button>
 
       {isMenuOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-background border border-border rounded-md shadow-lg z-10">
-          <div className="p-2">
-            <div className="px-2 py-1 text-xs text-muted-foreground border-b border-border mb-2">
+        <div className="absolute right-0 mt-2 w-56 bg-background rounded-2xl neu-elevated z-10 overflow-hidden">
+          <div className="p-3">
+            <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border/50 mb-2">
               {user.email}
             </div>
             <button
               onClick={handleSignOut}
-              className="w-full text-left px-2 py-1 text-sm hover:bg-muted rounded"
+              className="w-full text-left px-3 py-2 text-sm font-medium rounded-xl hover:bg-destructive/10 hover:text-destructive transition-colors"
             >
               Sign Out
             </button>

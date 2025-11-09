@@ -106,7 +106,7 @@ export function InlineEdit({
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onClick={handleInputClick}
-          className={`flex-1 px-2 py-1 border border-input bg-background rounded focus:outline-none focus:ring-2 focus:ring-ring ${inputClassName}`}
+          className={`flex-1 px-4 py-2 bg-background rounded-xl neu-pressed focus:outline-none focus:ring-2 focus:ring-primary transition-all ${inputClassName}`}
           placeholder={placeholder}
           maxLength={maxLength}
           disabled={isSaving}
@@ -115,7 +115,7 @@ export function InlineEdit({
           size="sm"
           onClick={handleSave}
           disabled={isSaving || !editValue.trim()}
-          className="h-7 px-2"
+          className="h-9 w-9 p-0"
         >
           {isSaving ? '...' : '✓'}
         </Button>
@@ -124,7 +124,7 @@ export function InlineEdit({
           variant="outline"
           onClick={handleCancel}
           disabled={isSaving}
-          className="h-7 px-2"
+          className="h-9 w-9 p-0"
         >
           ✕
         </Button>
@@ -135,7 +135,7 @@ export function InlineEdit({
   return (
     <button 
       type="button"
-      className={`flex items-center gap-2 group text-left ${className}`}
+      className={`flex items-center gap-2 group text-left hover:opacity-80 transition-opacity ${className}`}
       onClick={handleStartEdit}
       disabled={disabled}
     >

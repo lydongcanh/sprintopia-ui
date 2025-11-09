@@ -4,48 +4,58 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    /* Neumorphism Light Theme - Soft gray/blue tones */
+    --background: 220 15% 93%;
+    --foreground: 220 20% 20%;
+    --card: 220 15% 93%;
+    --card-foreground: 220 20% 20%;
+    --popover: 220 15% 93%;
+    --popover-foreground: 220 20% 20%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 85%;
+    --secondary-foreground: 220 20% 20%;
+    --muted: 220 15% 85%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 221 83% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 15% 85%;
+    --input: 220 15% 93%;
+    --ring: 221 83% 53%;
+    --radius: 1rem;
+    
+    /* Neumorphism shadows */
+    --neu-shadow-light: rgba(255, 255, 255, 0.8);
+    --neu-shadow-dark: rgba(163, 177, 198, 0.6);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    /* Neumorphism Dark Theme - Deep blue-gray */
+    --background: 220 20% 15%;
+    --foreground: 220 10% 90%;
+    --card: 220 20% 15%;
+    --card-foreground: 220 10% 90%;
+    --popover: 220 20% 15%;
+    --popover-foreground: 220 10% 90%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 20% 20%;
+    --secondary-foreground: 220 10% 90%;
+    --muted: 220 20% 20%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 221 83% 53%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 20% 20%;
+    --input: 220 20% 15%;
+    --ring: 221 83% 53%;
+    
+    /* Neumorphism shadows for dark mode */
+    --neu-shadow-light: rgba(60, 70, 90, 0.8);
+    --neu-shadow-dark: rgba(10, 15, 25, 0.8);
   }
 }
 
@@ -55,5 +65,69 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Neumorphic Elevated (Convex) */
+  .neu-elevated {
+    box-shadow: 
+      8px 8px 16px var(--neu-shadow-dark),
+      -8px -8px 16px var(--neu-shadow-light);
+  }
+  
+  .neu-elevated-sm {
+    box-shadow: 
+      4px 4px 8px var(--neu-shadow-dark),
+      -4px -4px 8px var(--neu-shadow-light);
+  }
+  
+  .neu-elevated-lg {
+    box-shadow: 
+      12px 12px 24px var(--neu-shadow-dark),
+      -12px -12px 24px var(--neu-shadow-light);
+  }
+
+  /* Neumorphic Pressed (Concave) */
+  .neu-pressed {
+    box-shadow: 
+      inset 6px 6px 12px var(--neu-shadow-dark),
+      inset -6px -6px 12px var(--neu-shadow-light);
+  }
+  
+  .neu-pressed-sm {
+    box-shadow: 
+      inset 3px 3px 6px var(--neu-shadow-dark),
+      inset -3px -3px 6px var(--neu-shadow-light);
+  }
+
+  /* Neumorphic Flat */
+  .neu-flat {
+    box-shadow: 
+      4px 4px 8px var(--neu-shadow-dark),
+      -4px -4px 8px var(--neu-shadow-light);
+  }
+
+  /* Hover states */
+  .neu-elevated:hover {
+    box-shadow: 
+      10px 10px 20px var(--neu-shadow-dark),
+      -10px -10px 20px var(--neu-shadow-light);
+    transform: translateY(-2px);
+  }
+
+  .neu-pressed:hover {
+    box-shadow: 
+      inset 8px 8px 16px var(--neu-shadow-dark),
+      inset -8px -8px 16px var(--neu-shadow-light);
+  }
+
+  /* Active/Focus states */
+  .neu-elevated:active,
+  .neu-elevated.active {
+    box-shadow: 
+      inset 4px 4px 8px var(--neu-shadow-dark),
+      inset -4px -4px 8px var(--neu-shadow-light);
+    transform: translateY(0);
   }
 }
