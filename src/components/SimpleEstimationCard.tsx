@@ -62,10 +62,10 @@ export function SimpleEstimationCard({
         <h3 className="text-2xl font-semibold">Cast your vote 👇</h3>
         
         {currentEstimation !== undefined && (
-          <div className="px-4 py-2 rounded-xl neu-elevated bg-green-50 flex items-center gap-2">
+          <div className="px-4 py-2 rounded-xl neu-elevated bg-gradient-to-r from-green-50 to-emerald-50 flex items-center gap-2 animate-in slide-in-from-right">
             <CheckCircle2 className="w-4 h-4 text-green-600" />
             <span className="font-semibold text-green-800">
-              {currentEstimation === -1 ? 'Unknown' : `${currentEstimation} pts`}
+              You voted: {currentEstimation === -1 ? 'Unknown' : `${currentEstimation} pts`}
             </span>
           </div>
         )}
@@ -84,20 +84,21 @@ export function SimpleEstimationCard({
                 h-16 w-16 flex items-center justify-center relative
                 transition-all duration-200 rounded-2xl font-bold text-xl
                 ${isSelected 
-                  ? 'bg-primary text-primary-foreground neu-pressed scale-95' 
-                  : 'bg-background neu-elevated hover:neu-elevated-lg hover:scale-105'
+                  ? 'bg-gradient-to-br from-primary to-purple-600 text-white neu-pressed scale-95 shadow-inner' 
+                  : 'bg-background neu-elevated hover:neu-elevated-lg hover:scale-105 hover:brightness-105'
                 }
                 ${isCurrentlySubmitting ? 'animate-pulse' : ''}
                 disabled:opacity-50 disabled:cursor-not-allowed
+                active:neu-pressed active:scale-90
               `}
               onClick={() => handleVote(point.value)}
               disabled={isSubmitting}
             >
-              <span>{point.label}</span>
+              <span className={isSelected ? 'animate-in zoom-in' : ''}>{point.label}</span>
               
               {isSelected && (
-                <div className="absolute -top-2 -right-2">
-                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center neu-elevated-sm">
+                <div className="absolute -top-2 -right-2 animate-in zoom-in">
+                  <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center shadow-lg status-glow-green">
                     <CheckCircle2 className="w-5 h-5 text-white" />
                   </div>
                 </div>

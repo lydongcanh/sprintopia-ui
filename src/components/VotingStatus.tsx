@@ -38,7 +38,7 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
   const votingProgress = totalCount > 0 ? (votedCount / totalCount) * 100 : 0
 
   return (
-    <div className="rounded-3xl p-8 bg-gradient-to-br from-blue-50/50 to-purple-50/50">
+    <div className="rounded-3xl p-8 neu-elevated bg-background">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
@@ -62,14 +62,20 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
           </div>
         </div>
         
-        {/* Progress Bar */}
-        <div className="w-full bg-muted rounded-full h-3 neu-pressed-sm overflow-hidden">
+        {/* Progress Bar with inline percentage */}
+        <div className="relative w-full bg-muted rounded-full h-4 neu-pressed-sm overflow-hidden">
           <motion.div
-            className="bg-gradient-to-r from-primary to-accent h-3 rounded-full"
+            className="bg-gradient-to-r from-primary via-purple-500 to-accent h-4 rounded-full relative"
             initial={{ width: 0 }}
             animate={{ width: `${votingProgress}%` }}
             transition={{ duration: 0.5, ease: "easeOut" }}
-          />
+          >
+            {votingProgress > 15 && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-white">
+                {Math.round(votingProgress)}%
+              </span>
+            )}
+          </motion.div>
         </div>
       </div>
       
@@ -99,7 +105,7 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                                 transition={{ duration: 0.6, type: "spring" }}
                                 className="w-full"
                               >
-                                <div className="w-28 h-40 bg-gradient-to-br from-primary to-accent rounded-2xl neu-elevated-lg flex items-center justify-center">
+                                <div className="w-28 h-40 bg-gradient-to-br from-primary to-accent rounded-2xl shadow-xl flex items-center justify-center">
                                   <span className="text-7xl font-bold text-white">
                                     {(() => {
                                       if (status.estimation === -1) return '?';
@@ -115,17 +121,18 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                           if (status.hasVoted) {
                             return (
                               <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ duration: 0.3, type: "spring" }}
+                                initial={{ scale: 0, rotateY: 180 }}
+                                animate={{ scale: 1, rotateY: 0 }}
+                                transition={{ duration: 0.6, type: "spring" }}
                                 className="relative"
                               >
                                 {/* Card Back - Voted */}
-                                <div className="w-28 h-40 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl neu-elevated-lg flex items-center justify-center">
-                                  <div className="text-6xl">🃏</div>
+                                <div className="w-28 h-40 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center relative overflow-hidden shadow-xl">
+                                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-transparent"></div>
+                                  <div className="text-6xl relative z-10">🃏</div>
                                 </div>
-                                {/* Checkmark */}
-                                <div className="absolute -top-3 -right-3 bg-green-500 rounded-full p-2 neu-elevated-sm">
+                                {/* Checkmark with glow */}
+                                <div className="absolute -top-3 -right-3 bg-green-500 rounded-full p-2 shadow-lg status-glow-green animate-pulse">
                                   <CheckCircle2 className="h-5 w-5 text-white" />
                                 </div>
                               </motion.div>
@@ -135,18 +142,20 @@ export function VotingStatus({ participants, estimations, isActive, showResults 
                           return (
                             <motion.div
                               animate={{ 
-                                scale: [1, 1.05, 1],
-                                opacity: [0.6, 1, 0.6]
+                                scale: [1, 1.02, 1],
+                                opacity: [0.5, 0.7, 0.5]
                               }}
                               transition={{ 
                                 duration: 2,
                                 repeat: Infinity,
                                 ease: "easeInOut"
                               }}
+                              className="relative"
                             >
-                              {/* Waiting Card */}
-                              <div className="w-28 h-40 bg-muted rounded-2xl neu-pressed flex items-center justify-center border-4 border-dashed border-muted-foreground/30">
-                                <Clock className="h-12 w-12 text-muted-foreground" />
+                              {/* Waiting Card with pulsing border */}
+                              <div className="w-28 h-40 bg-muted rounded-2xl neu-pressed flex items-center justify-center border-2 border-dashed border-muted-foreground/20 relative">
+                                <div className="absolute inset-0 rounded-2xl border-2 border-primary/20 animate-pulse"></div>
+                                <Clock className="h-12 w-12 text-muted-foreground relative z-10" />
                               </div>
                             </motion.div>
                           )

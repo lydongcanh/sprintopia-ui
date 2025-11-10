@@ -164,10 +164,12 @@ export function EstimationResults({ estimations, onStartNewTurn, isStartingNewTu
           onClick={onStartNewTurn} 
           disabled={isStartingNewTurn}
           size="lg"
-          className="w-full text-lg"
+          className="w-full h-16 text-xl font-bold neu-elevated-xl bg-gradient-to-r from-primary via-purple-600 to-primary hover:brightness-110 hover:scale-105 active:neu-pressed active:scale-95 transition-all duration-300 shadow-2xl"
         >
-          <RotateCcw className="w-5 h-5 mr-2" />
-          {isStartingNewTurn ? 'Starting...' : 'Start Next Round'}
+          <RotateCcw className={`w-6 h-6 mr-3 ${isStartingNewTurn ? 'animate-spin' : ''}`} />
+          <span className={isStartingNewTurn ? 'animate-pulse' : ''}>
+            {isStartingNewTurn ? 'Starting...' : 'Start Next Round'}
+          </span>
         </Button>
       </div>
     </div>

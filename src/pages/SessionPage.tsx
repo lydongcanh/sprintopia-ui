@@ -388,8 +388,9 @@ export default function SessionPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-4">
-                <Link to="/" className="text-primary hover:underline font-medium">
-                  ← Back to Home
+                <Link to="/" className="neu-elevated px-4 py-2 rounded-xl hover:neu-elevated-lg transition-all duration-300 flex items-center gap-2 text-primary font-medium hover:scale-105">
+                  <span>←</span>
+                  <span>Back to Home</span>
                 </Link>
                 <InlineEdit
                   value={session.name}
@@ -400,8 +401,8 @@ export default function SessionPage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl neu-pressed-sm">
-                <div className={`w-2 h-2 rounded-full ${getStatusColor()}`} />
+              <div className="flex items-center gap-3 px-4 py-2 rounded-xl neu-elevated-sm bg-background">
+                <div className={`w-2 h-2 rounded-full ${getStatusColor()} ${connectionStatus === 'connected' ? 'status-glow-green' : ''}`} />
                 <span className="text-sm font-medium capitalize">
                   {connectionStatus}
                 </span>
@@ -426,14 +427,12 @@ export default function SessionPage() {
           {(estimationState.isActive || estimationState.showResults) && (
             <div className="space-y-8">
               {/* Poker Table - Shows all participants and their voting status */}
-              <div className="neu-elevated rounded-3xl p-6">
-                <VotingStatus 
-                  participants={participants}
-                  estimations={estimationState.estimations}
-                  isActive={estimationState.isActive}
-                  showResults={estimationState.showResults}
-                />
-              </div>
+              <VotingStatus 
+                participants={participants}
+                estimations={estimationState.estimations}
+                isActive={estimationState.isActive}
+                showResults={estimationState.showResults}
+              />
 
               {/* Voting Interface - Show when round is active */}
               {estimationState.isActive && !estimationState.showResults && (
@@ -457,9 +456,11 @@ export default function SessionPage() {
                         onClick={handleEndEstimationTurn}
                         disabled={isEndingTurn}
                         size="lg"
-                        className="h-14 px-12 text-lg"
+                        className="h-16 px-16 text-xl font-bold neu-elevated-xl bg-gradient-to-r from-primary via-blue-600 to-primary hover:brightness-110 hover:scale-105 active:neu-pressed active:scale-95 transition-all duration-300 shadow-2xl"
                       >
-                        {isEndingTurn ? 'Revealing...' : 'Reveal Results'}
+                        <span className={isEndingTurn ? 'animate-pulse' : ''}>
+                          {isEndingTurn ? 'Revealing...' : 'Reveal Results'}
+                        </span>
                       </Button>
                     </div>
                   )}
