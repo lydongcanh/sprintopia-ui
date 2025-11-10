@@ -87,6 +87,12 @@
       12px 12px 24px var(--neu-shadow-dark),
       -12px -12px 24px var(--neu-shadow-light);
   }
+  
+  .neu-elevated-xl {
+    box-shadow: 
+      16px 16px 32px var(--neu-shadow-dark),
+      -16px -16px 32px var(--neu-shadow-light);
+  }
 
   /* Neumorphic Pressed (Concave) */
   .neu-pressed {
@@ -113,7 +119,6 @@
     box-shadow: 
       10px 10px 20px var(--neu-shadow-dark),
       -10px -10px 20px var(--neu-shadow-light);
-    transform: translateY(-2px);
   }
 
   .neu-pressed:hover {
@@ -128,6 +133,18 @@
     box-shadow: 
       inset 4px 4px 8px var(--neu-shadow-dark),
       inset -4px -4px 8px var(--neu-shadow-light);
-    transform: translateY(0);
+  }
+  
+  /* Status glow effects */
+  .status-glow-green {
+    box-shadow: 0 0 8px rgba(72, 255, 120, 0.6);
+  }
+  
+  .status-glow-orange {
+    box-shadow: 0 0 8px rgba(255, 165, 0, 0.6);
+  }
+  
+  .status-glow-red {
+    box-shadow: 0 0 8px rgba(255, 82, 82, 0.6);
   }
 }

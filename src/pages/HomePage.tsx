@@ -184,20 +184,28 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-3">
-            <h2 className="text-4xl font-bold">Planning Poker Sessions</h2>
-            <p className="text-muted-foreground text-lg">
+            <h2 className="text-5xl font-extrabold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              Planning Poker Sessions
+            </h2>
+            <p className="text-muted-foreground/70 text-base">
               Join an existing session or create a new one for your team
             </p>
           </div>
 
           {/* Tab Navigation */}
           <div className="flex justify-center">
-            <div className="bg-background neu-pressed-sm p-2 rounded-2xl">
+            <div className="bg-background neu-pressed-sm p-2 rounded-2xl relative">
+              {/* Animated sliding background */}
+              <div 
+                className={`absolute top-2 h-[calc(100%-1rem)] bg-background neu-elevated rounded-xl transition-all duration-300 ease-out ${
+                  activeTab === 'join' ? 'left-2 w-[calc(50%-0.5rem)]' : 'left-[calc(50%+0.25rem)] w-[calc(50%-0.5rem)]'
+                }`}
+              />
               <button
                 onClick={() => setActiveTab('join')}
-                className={`px-8 py-3 rounded-xl font-medium transition-all duration-200 ${
+                className={`relative z-10 px-8 py-3 rounded-xl font-medium transition-all duration-300 ${
                   activeTab === 'join'
-                    ? 'bg-background neu-elevated text-foreground'
+                    ? 'text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -205,9 +213,9 @@ export default function HomePage() {
               </button>
               <button
                 onClick={() => setActiveTab('create')}
-                className={`px-8 py-3 rounded-xl font-medium transition-all duration-200 ${
+                className={`relative z-10 px-8 py-3 rounded-xl font-medium transition-all duration-300 ${
                   activeTab === 'create'
-                    ? 'bg-background neu-elevated text-foreground'
+                    ? 'text-foreground'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
@@ -228,30 +236,31 @@ export default function HomePage() {
               ) : (
                 <>
                   {existingSessions.length === 0 ? (
-                    <div className="text-center py-16 neu-pressed rounded-3xl">
+                    <div className="text-center py-16 neu-pressed rounded-3xl max-w-2xl mx-auto">
                       <div className="mb-6">
-                        <div className="w-24 h-24 mx-auto mb-6 rounded-full neu-elevated flex items-center justify-center">
+                        <div className="w-24 h-24 mx-auto mb-6 rounded-full neu-elevated flex items-center justify-center bg-background">
                           <span className="text-5xl">🎯</span>
                         </div>
                         <h3 className="text-2xl font-semibold mb-3">No active sessions</h3>
-                        <p className="text-muted-foreground mb-6 text-lg">
+                        <p className="text-muted-foreground/70 mb-6 text-lg">
                           Be the first to create a planning poker session for your team!
                         </p>
                         <Button 
                           onClick={() => setActiveTab('create')}
                           variant="outline"
                           size="lg"
+                          className="neu-elevated-lg hover:neu-elevated-xl hover:scale-105"
                         >
                           Create First Session
                         </Button>
                       </div>
                     </div>
                   ) : (
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
                       {existingSessions.map((sessionItem) => (
                         <div
                           key={sessionItem.id}
-                          className="neu-elevated rounded-3xl p-6 hover:neu-elevated-lg transition-all duration-300 group bg-background"
+                          className="neu-elevated rounded-3xl p-6 hover:neu-elevated-xl hover:scale-[1.02] transition-all duration-300 group bg-background cursor-pointer"
                         >
                           <div className="flex items-start justify-between mb-4">
                             <InlineEdit
@@ -261,18 +270,23 @@ export default function HomePage() {
                               className="flex-1 min-w-0"
                               showEditIcon={true}
                             />
-                            <div className="w-3 h-3 bg-green-400 rounded-full flex-shrink-0 mt-2 neu-elevated-sm"></div>
+                            <div className="w-3 h-3 bg-green-400 rounded-full flex-shrink-0 mt-2 neu-elevated-sm status-glow-green"></div>
                           </div>
-                          <p className="text-sm text-muted-foreground mb-6">
+                          <p className="text-sm text-muted-foreground/70 mb-6">
                             Created {formatDate(sessionItem.created_at)}
                           </p>
                           <Button
                             variant="ghost"
-                            className="w-full justify-between text-sm hover:bg-transparent"
+                            className="w-full relative text-sm hover:bg-primary/5 transition-all duration-300 group-hover:text-primary flex justify-start"
                             onClick={() => handleJoinSession(sessionItem.id)}
                           >
-                            <span>Click to join</span>
-                            <span className="text-primary group-hover:translate-x-2 transition-transform">→</span>
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                              Join {sessionItem.name}
+                            </span>
+                            <span className="group-hover:opacity-0 opacity-100 transition-opacity duration-300 absolute left-4">
+                              Click to join
+                            </span>
+                            <span className="text-primary group-hover:translate-x-2 transition-transform duration-300 absolute right-4">→</span>
                           </Button>
                         </div>
                       ))}
@@ -294,7 +308,7 @@ export default function HomePage() {
                     type="text"
                     value={sessionName}
                     onChange={(e) => setSessionName(e.target.value)}
-                    className="w-full px-6 py-4 bg-background rounded-2xl neu-pressed focus:outline-none focus:ring-2 focus:ring-primary transition-all"
+                    className="w-full px-6 py-4 bg-background rounded-2xl neu-pressed focus:outline-none focus:ring-2 focus:ring-primary transition-all placeholder:text-muted-foreground/50"
                     placeholder="e.g., Sprint 23 Planning"
                     disabled={isCreating}
                     required
@@ -303,7 +317,7 @@ export default function HomePage() {
 
                 <Button 
                   type="submit" 
-                  className="w-full py-4" 
+                  className="w-full py-4 neu-elevated-xl hover:neu-elevated-xl hover:scale-[1.02] active:neu-pressed active:scale-95" 
                   size="lg"
                   disabled={isCreating || !sessionName.trim()}
                 >
